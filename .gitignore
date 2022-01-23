@@ -130,3 +130,6 @@ dmypy.json
 
 # Music files
 *.mp3
+
+# html files
+*.html
