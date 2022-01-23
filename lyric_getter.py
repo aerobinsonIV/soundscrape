@@ -3,13 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 from bs4 import Comment
 
+from soup_url import soup_url
+
 def get_lyrics_azlyrics(artist, title):
-    search_results_page_response = requests.get(f'https://search.azlyrics.com/search.php?q={artist}+{title}')
 
-    search_html = search_results_page_response.text
-
-    # Get the HTML of the search results page into BeautifulSoup
-    search_soup = BeautifulSoup(str(search_html), 'html.parser')
+    search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={artist}+{title}')
 
     # Find anchor tags
     anchors = search_soup.find_all('a')
@@ -22,11 +20,7 @@ def get_lyrics_azlyrics(artist, title):
             lyrics_page_url = anchor['href']
 
     # Get lyrics page
-    lyrics_page_response = requests.get(lyrics_page_url)
-
-    lyrics_html = lyrics_page_response.text
-
-    lyrics_soup = BeautifulSoup(str(lyrics_html), 'html.parser')
+    lyrics_soup = soup_url(lyrics_page_url)
 
     # The lyrics section is a div.
     divs = lyrics_soup.find_all('div')
