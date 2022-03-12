@@ -1,7 +1,9 @@
 # music-acquisition-tools
 Tools to help automate the process of downloading songs and embedding accurate and high-quality metadata.
 
-
+# Requirements
+pip3 install beautifulsoup4 requests selenium
+[geckodriver](https://github.com/mozilla/geckodriver/releases)
 ## Use case goal
 
 ### Downloading
