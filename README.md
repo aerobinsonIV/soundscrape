@@ -4,6 +4,18 @@ Tools to help automate the process of downloading songs and embedding accurate a
 # Requirements
 pip3 install beautifulsoup4 requests selenium
 [geckodriver](https://github.com/mozilla/geckodriver/releases)
+You'll get an exe, literally just stick that exe somewhere that's in PATH. I did Program Files/geckodriver/geckodriver.exe then added the geckodriver dir to PATH.
+
+## Conda
+```
+conda create -n music python=3.9
+conda activate music
+
+conda install selenium
+conda install beautifulsoup4
+conda install requests
+```
+
 ## Use case goal
 
 ### Downloading
