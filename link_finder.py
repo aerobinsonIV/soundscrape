@@ -3,6 +3,9 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+from fuzzywuzzy import fuzz # Fuzzy string matching library
+from Levenshtein import distance as lev
+
 def soundcloud(artist, title):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0",
@@ -42,5 +45,20 @@ def soundcloud(artist, title):
         print("------------------------------------------------------------------------------------------------")
 
     driver.close()
+
+def prep_string_for_matching(input):
+    return input.lower()
+
+# Function that can parse search results from any website as long as we get them into our standard tuple format:
+# (artist/username, title, relative link)
+def find_best_match(artist, title, search_results):
+
+    best_match_artist_ratio = 0
+
+    for item in search_results:
+        item_artist = item[0]
+        item_title = item[1]
+
+        if artist in item_title
 
 soundcloud("i love ", "you")
