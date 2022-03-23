@@ -1,4 +1,4 @@
-# music-acquisition-tools
+# SoundScrape
 Tools to help automate the process of downloading songs and embedding accurate and high-quality metadata.
 
 
