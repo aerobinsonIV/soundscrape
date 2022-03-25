@@ -1,6 +1,13 @@
 # SoundScrape
 Tools to help automate the process of downloading songs and embedding accurate and high-quality metadata.
 
+# Installation
+`
+pip install undetected-chromedriver
+`
+
+### avoiding bot detection
+https://github.com/ultrafunkamsterdam/undetected-chromedriver
 
 ## Use case goal
 
