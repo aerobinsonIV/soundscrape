@@ -1,3 +1,4 @@
+from distutils.command.upload import upload
 import time
 from selenium.webdriver.common.by import By
 import selenium
@@ -21,7 +22,6 @@ def sc_login(output_file):
     cookies_json = json.dumps(cookies)
     with open(output_file,"w") as f:
         f.write(cookies_json)
-
 
 # On the first time a user visits one of their own tracks after logging in, there will be a prompt alerting them that they can auto-master their tracks
 # Apparently SoundCloud assumes their users are incompetent. Takes one to know one.
@@ -98,22 +98,31 @@ def dl_cover_artwork(driver, filename):
     with open(filename, 'wb') as image_file:
         image_file.write(img_data)
 
+def get_upload_year(driver):
+    upload_time_div = driver.find_element(By.CLASS_NAME, "fullHero__uploadTime")
+    upload_time_time = upload_time_div.find_element(By.TAG_NAME, "time")
+    
+    # Last 4 chars of title attribute are the year uploaded
+    return upload_time_time.get_attribute('title')[-4:]
+
+
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
     # sc_login("cookies.json")
 
-    driver = driver_with_cookies_from_file("cookies.json")
+    # driver = driver_with_cookies_from_file("cookies.json")
     
-    # Set songs to download to /temp
-    params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
-    driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
+    # # Set songs to download to /temp
+    # params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
+    # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
+    driver = selenium.webdriver.Chrome()
     driver.get("https://soundcloud.com/jousboxx/time")
-
     dismiss_mastering_prompt_if_present(driver)
 
-    dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
+    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
+    print(get_upload_year(driver))
     
     # dl_button = get_direct_download_button(driver, "https://soundcloud.com/jousboxx/time")
     # dl_button.click()
