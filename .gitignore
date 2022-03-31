@@ -130,3 +130,5 @@ dmypy.json
 
 # Music files
 *.mp3
+
+cookies.json
