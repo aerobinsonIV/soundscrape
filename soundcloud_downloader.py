@@ -63,11 +63,7 @@ def driver_with_cookies_from_file(input_file):
 
     return driver
 
-def get_direct_download_button(driver, link):
-    
-    driver.get(link)
-
-    dismiss_mastering_prompt_if_present(driver)
+def get_direct_download_button(driver):
 
     three_dots_button = driver.find_element(By.CLASS_NAME, "sc-button-more")
 
@@ -83,10 +79,7 @@ def get_direct_download_button(driver, link):
         print("Didn't find download button")
         return None
 
-def dl_cover_artwork(driver, link, filename):
-    driver.get(link)
-
-    dismiss_mastering_prompt_if_present(driver)
+def dl_cover_artwork(driver, filename):
 
     cover_artwork_thumb = driver.find_element(By.CLASS_NAME, "sc-artwork-40x")
     cover_artwork_thumb.click()
@@ -105,7 +98,6 @@ def dl_cover_artwork(driver, link, filename):
     with open(filename, 'wb') as image_file:
         image_file.write(img_data)
 
-
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
@@ -117,7 +109,11 @@ if __name__ == '__main__':
     params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
     driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
-    dl_cover_artwork(driver, "https://soundcloud.com/jousboxx/time", os.path.join(os.getcwd(), "temp/artwork.jpg"))
+    driver.get("https://soundcloud.com/jousboxx/time")
+
+    dismiss_mastering_prompt_if_present(driver)
+
+    dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
     
     # dl_button = get_direct_download_button(driver, "https://soundcloud.com/jousboxx/time")
     # dl_button.click()
