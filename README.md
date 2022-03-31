@@ -4,7 +4,13 @@ Tools to help automate the process of downloading songs and embedding accurate a
 # Installation
 `
 pip install undetected-chromedriver
+pip install pydub
 `
+
+### from the pydub readme: https://github.com/jiaaro/pydub#dependencies
+Download and extract libav from Windows binaries provided [here](http://builds.libav.org/windows/).
+Add the libav `/bin` folder to your PATH envvar
+Reboot
 
 ### avoiding bot detection
 https://github.com/ultrafunkamsterdam/undetected-chromedriver

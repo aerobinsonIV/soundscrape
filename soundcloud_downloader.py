@@ -5,6 +5,7 @@ import selenium
 import json
 import os
 import requests
+import pydub
 
 import undetected_chromedriver as uc
 
@@ -130,29 +131,32 @@ def get_title_and_artist(driver, artist_from_url):
 
     return result
 
+def convert_downloaded_sounds_to_mp3():
+
+    # Get all files in the temp dir
+
+    path = os.path.join(os.getcwd(), "temp/")
+
+    files = os.listdir(path)
+    
+    # Find sound files of non-mp3 type
+    convertable_extensions = [".wav", ".flac", ".ogg", ".m4a"]
+    sound_files = []
+    for file in files:
+        for ext in convertable_extensions:
+            if file[-len(ext):] == ext:
+                sound_files.append(file)
+
+    for file in sound_files:
+        mp3_filename = os.path.splitext(os.path.basename(file))[0] + '.mp3'
+        infile = os.path.join(path, file)
+        outfile = os.path.join(path, mp3_filename)
+        print(f"Converting {file} to mp3...")
+        pydub.AudioSegment.from_file(infile).export(outfile, format='mp3', bitrate="320k")
+    
+
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
-    # sc_login("cookies.json")
-
-    # driver = driver_with_cookies_from_file("cookies.json")
     
-    # # Set songs to download to /temp
-    # params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
-    # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
-
-    driver = selenium.webdriver.Chrome()
-    driver.get("https://soundcloud.com/fyrebreak/reach-w-jousboxx")
-    # dismiss_mastering_prompt_if_present(driver)
-
-    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
-    # print(get_upload_year(driver))
-
-    title_and_artist = get_title_and_artist(driver, False)
-    print(title_and_artist["title"])
-    print(title_and_artist["artist"])
-    
-    # dl_button = get_direct_download_button(driver, "https://soundcloud.com/jousboxx/time")
-    # dl_button.click()
-
-    time.sleep(5)
+    convert_downloaded_sounds_to_mp3()
