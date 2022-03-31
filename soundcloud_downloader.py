@@ -105,6 +105,30 @@ def get_upload_year(driver):
     # Last 4 chars of title attribute are the year uploaded
     return upload_time_time.get_attribute('title')[-4:]
 
+def get_title_and_artist(driver, artist_from_url):
+    result = {}
+
+    # TODO: Add better handling of collabs, record labels, features, etc.
+
+    # Artist (username)
+    if artist_from_url:
+        url_base = "https://soundcloud.com/"
+        url_rel = driver.current_url[len(url_base):]
+        result["artist"] = url_rel[:url_rel.find("/")]
+        print(url_rel)
+    else:
+        username_container = driver.find_element(By.CLASS_NAME, "soundTitle__usernameHeroContainer")
+        username_h2 = username_container.find_element(By.CLASS_NAME, "soundTitle__username")
+        username_anchor =  username_h2.find_element(By.TAG_NAME, "a")
+        result["artist"] = username_anchor.text
+
+    # Title
+    title_container = driver.find_element(By.CLASS_NAME, "soundTitle__titleHeroContainer")
+    title_h1 = title_container.find_element(By.CLASS_NAME, "soundTitle__title")
+    title_span =  title_h1.find_element(By.TAG_NAME, "span")
+    result["title"] = title_span.text
+
+    return result
 
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
@@ -118,11 +142,15 @@ if __name__ == '__main__':
     # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
     driver = selenium.webdriver.Chrome()
-    driver.get("https://soundcloud.com/jousboxx/time")
-    dismiss_mastering_prompt_if_present(driver)
+    driver.get("https://soundcloud.com/fyrebreak/reach-w-jousboxx")
+    # dismiss_mastering_prompt_if_present(driver)
 
     # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
-    print(get_upload_year(driver))
+    # print(get_upload_year(driver))
+
+    title_and_artist = get_title_and_artist(driver, False)
+    print(title_and_artist["title"])
+    print(title_and_artist["artist"])
     
     # dl_button = get_direct_download_button(driver, "https://soundcloud.com/jousboxx/time")
     # dl_button.click()
