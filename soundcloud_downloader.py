@@ -29,17 +29,6 @@ def driver_with_cookies_from_file(input_file):
 
     cookies_json = json.loads(cookies_str)
 
-    
-    # op = uc.ChromeOptions()
-    # op.add_experimental_option("prefs", {
-    #     "download.default_directory": "D:\\music-acquisition-tools\\temp\\",
-    #     "download.prompt_for_download": False,
-    #     "download.directory_upgrade": True,
-    #     "safebrowsing_for_trusted_sources_enabled": False,
-    #     "safebrowsing.enabled": False
-    # })
-    # driver = uc.Chrome(chrome_options=op)
-
     driver = webdriver.Chrome()
 
     # We first have to navigate to the domain we want to set cookies for, otherwise the browser won't let us set them
@@ -59,7 +48,7 @@ def driver_with_cookies_from_file(input_file):
 
     return driver
 
-def has_direct_download(driver, link):
+def get_direct_download_button(driver, link):
     
     driver.get(link)
 
@@ -85,17 +74,15 @@ def has_direct_download(driver, link):
     try:
         download_button = driver.find_element(By.CLASS_NAME, "sc-button-download")
         print("Found download button")
+        return download_button
     except:
         print("Didn't find download button")
-        return -1
-
-    download_button.click()
+        return None
 
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
     # sc_login("cookies.json")
-    # has_direct_download("https://soundcloud.com/zensupremacy/frij-trajectory")
 
     driver = driver_with_cookies_from_file("cookies.json")
     
@@ -103,7 +90,7 @@ if __name__ == '__main__':
     params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
     driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
     
-    has_direct_download(driver, "https://soundcloud.com/jousboxx/time")
-    # has_direct_download(driver, "https://soundcloud.com/zensupremacy/frij-trajectory")
+    dl_button = get_direct_download_button(driver, "https://soundcloud.com/jousboxx/time")
+    dl_button.click()
 
-    time.sleep(99999)
+    time.sleep(5)
