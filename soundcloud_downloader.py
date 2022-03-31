@@ -53,6 +53,17 @@ def has_direct_download(driver, link):
     # TODO:
     time.sleep(3)
 
+    # On the first time a user visits one of their own tracks after logging in, there will be a prompt alerting them that they can auto-master their tracks
+    # Apparently SoundCloud assumes their users are incompetent. Takes one to know one.
+    # Click the button to dismiss the prompt so we can access the rest of the page.
+    
+    try:
+        mastering_callout_button = driver.find_element(By.CLASS_NAME, "callout__button")
+        mastering_callout_button.click()
+        time.sleep(0.5)
+    except:
+        pass
+
     three_dots_button = driver.find_element(By.CLASS_NAME, "sc-button-more")
 
     three_dots_button.click()
@@ -75,6 +86,7 @@ if __name__ == '__main__':
     # has_direct_download("https://soundcloud.com/zensupremacy/frij-trajectory")
 
     driver = driver_with_cookies_from_file("cookies.json")
-    has_direct_download(driver, "https://soundcloud.com/jousboxx/time")
+    # has_direct_download(driver, "https://soundcloud.com/jousboxx/time")
+    has_direct_download(driver, "https://soundcloud.com/zensupremacy/frij-trajectory")
 
     time.sleep(99999)
