@@ -1,7 +1,9 @@
 import time
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
+from selenium import webdriver
 import json
+import os
 
 import undetected_chromedriver as uc
 
@@ -27,7 +29,18 @@ def driver_with_cookies_from_file(input_file):
 
     cookies_json = json.loads(cookies_str)
 
-    driver = uc.Chrome()
+    
+    # op = uc.ChromeOptions()
+    # op.add_experimental_option("prefs", {
+    #     "download.default_directory": "D:\\music-acquisition-tools\\temp\\",
+    #     "download.prompt_for_download": False,
+    #     "download.directory_upgrade": True,
+    #     "safebrowsing_for_trusted_sources_enabled": False,
+    #     "safebrowsing.enabled": False
+    # })
+    # driver = uc.Chrome(chrome_options=op)
+
+    driver = webdriver.Chrome()
 
     # We first have to navigate to the domain we want to set cookies for, otherwise the browser won't let us set them
     driver.get("https://soundcloud.com/")
@@ -35,13 +48,13 @@ def driver_with_cookies_from_file(input_file):
     for cookie in cookies_json:
         driver.add_cookie(cookie)
     
-    # TODO:
-    time.sleep(3)
+    # # TODO:
+    # time.sleep(3)
 
     # TODO: For an unknown reason, the page loads indefintely when we try to fresh soundcloud after loading the cookies. Going to google and back fixes it.
     # Find a less gross fix to this issue
     driver.get("https://google.com/")
-    time.sleep(3)
+    # time.sleep(3)
     driver.get("https://soundcloud.com/")
 
     return driver
@@ -51,12 +64,11 @@ def has_direct_download(driver, link):
     driver.get(link)
 
     # TODO:
-    time.sleep(3)
+    time.sleep(5)
 
     # On the first time a user visits one of their own tracks after logging in, there will be a prompt alerting them that they can auto-master their tracks
     # Apparently SoundCloud assumes their users are incompetent. Takes one to know one.
-    # Click the button to dismiss the prompt so we can access the rest of the page.
-    
+    # If present, click the button to dismiss the prompt so we can access the rest of the page.
     try:
         mastering_callout_button = driver.find_element(By.CLASS_NAME, "callout__button")
         mastering_callout_button.click()
@@ -86,7 +98,12 @@ if __name__ == '__main__':
     # has_direct_download("https://soundcloud.com/zensupremacy/frij-trajectory")
 
     driver = driver_with_cookies_from_file("cookies.json")
-    # has_direct_download(driver, "https://soundcloud.com/jousboxx/time")
-    has_direct_download(driver, "https://soundcloud.com/zensupremacy/frij-trajectory")
+    
+    # Set songs to download to /temp
+    params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
+    driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
+    
+    has_direct_download(driver, "https://soundcloud.com/jousboxx/time")
+    # has_direct_download(driver, "https://soundcloud.com/zensupremacy/frij-trajectory")
 
     time.sleep(99999)
