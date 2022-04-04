@@ -5,6 +5,7 @@ Tools to help automate the process of downloading songs and embedding accurate a
 `
 pip install undetected-chromedriver
 pip install pydub
+pip install mutagen
 `
 
 ### from the pydub readme: https://github.com/jiaaro/pydub#dependencies

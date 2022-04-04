@@ -6,6 +6,7 @@ import json
 import os
 import requests
 import pydub
+from mutagen.easyid3 import EasyID3
 
 import undetected_chromedriver as uc
 
@@ -131,6 +132,21 @@ def get_title_and_artist(driver, artist_from_url):
 
     return result
 
+def apply_metadata(artist, title, year):
+    
+    path = os.path.join(os.getcwd(), "temp/")
+    files = os.listdir(path)
+
+    # Find song and artwork image files
+    image_extensions = [".jpg", ".png"]
+    for file in files:
+        if file[-4:] == ".mp3":
+            song_file = file
+        else:
+            for ext in image_extensions:
+                if file[-len(ext):] == ext:
+                    image_file = file
+
 def convert_downloaded_sounds_to_mp3():
 
     # Get all files in the temp dir
@@ -154,9 +170,37 @@ def convert_downloaded_sounds_to_mp3():
         print(f"Converting {file} to mp3...")
         pydub.AudioSegment.from_file(infile).export(outfile, format='mp3', bitrate="320k")
     
-
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
+
+    # driver = driver_with_cookies_from_file("cookies.json")
+
+    driver = selenium.webdriver.Chrome()
+
+    # driver.get("https://soundcloud.com/jousboxx/velocity")
+
+    # # Set songs to download to /temp
+    # params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
+    # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
+
+    # # dismiss_mastering_prompt_if_present(driver)
+
+    # button = get_direct_download_button(driver)
+    # button.click()
+
+    # metadata = get_title_and_artist(driver, False)
+
+    # year = get_upload_year(driver)
+
+    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
+
+    # print(f"Aritist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
+
+    # time.sleep(20)
+
+    # convert_downloaded_sounds_to_mp3()
     
-    convert_downloaded_sounds_to_mp3()
+    # convert_downloaded_sounds_to_mp3()
+
+    apply_metadata()
