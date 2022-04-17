@@ -6,7 +6,7 @@ import json
 import os
 import requests
 import pydub
-from mutagen.easyid3 import EasyID3
+import eyed3
 
 import undetected_chromedriver as uc
 
@@ -146,6 +146,23 @@ def apply_metadata(artist, title, year):
             for ext in image_extensions:
                 if file[-len(ext):] == ext:
                     image_file = file
+    print("image file is " + image_file)
+    print("song file is " + song_file)
+
+    song = eyed3.load(os.path.join(path, song_file))
+    
+    # https://eyed3.readthedocs.io/en/latest/eyed3.id3.html#module-eyed3.id3.tag
+
+    song.tag.title = title
+    song.tag.album = title
+    
+    song.tag.artist = artist
+    song.tag.album_artist = artist
+
+    song.tag.original_release_date = year
+
+    song.tag.save()
+    
 
 def convert_downloaded_sounds_to_mp3():
 
@@ -174,17 +191,16 @@ def convert_downloaded_sounds_to_mp3():
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
 
+    # sc_login("cookies.json")
+
     # driver = driver_with_cookies_from_file("cookies.json")
-
-    driver = selenium.webdriver.Chrome()
-
     # driver.get("https://soundcloud.com/jousboxx/velocity")
 
     # # Set songs to download to /temp
     # params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
     # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
-    # # dismiss_mastering_prompt_if_present(driver)
+    # dismiss_mastering_prompt_if_present(driver)
 
     # button = get_direct_download_button(driver)
     # button.click()
@@ -198,9 +214,7 @@ if __name__ == '__main__':
     # print(f"Aritist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
 
     # time.sleep(20)
-
-    # convert_downloaded_sounds_to_mp3()
     
     # convert_downloaded_sounds_to_mp3()
 
-    apply_metadata()
+    apply_metadata("Jousboxx", "Velocity", "2016")
