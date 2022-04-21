@@ -169,8 +169,11 @@ def apply_metadata(artist, title, year):
 
     tag.write()
 
-    # Rename song file to title of song
-    os.rename(os.path.join(path, song_file), os.path.join(path, f"{title}.mp3"))
+    # Rename song file to title of song (might fail because invalid characters)
+    try:
+        os.rename(os.path.join(path, song_file), os.path.join(path, f"{title}.mp3"))
+    except:
+        print("Couldn't rename file, invalid chars")
 
 def convert_downloaded_sounds_to_mp3():
     print("here")
@@ -239,15 +242,23 @@ if __name__ == '__main__':
     links = read_input_file()
 
     for link in links:
-
+        print(f"link is {link}")
+        
         driver.get(link)
 
-        dismiss_mastering_prompt_if_present(driver)
+        # dismiss_mastering_prompt_if_present(driver)
+        
+        #Wait for page to load a bit
+        time.sleep(2)
 
-        button = get_direct_download_button(driver)
-        button.click()
+        try:
+            button = get_direct_download_button(driver)
+            button.click()
+        except:
+            print("Failed to get direct download button. Skipping track.")
+            continue
 
-        metadata = get_title_and_artist(driver, False)
+        metadata = get_title_and_artist(driver, True)
 
         year = get_upload_year(driver)
 
@@ -256,9 +267,18 @@ if __name__ == '__main__':
         print(f"Artist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
 
         # Wait for song to download
-        time.sleep(20)
+        time.sleep(10)
+        try:
+            convert_downloaded_sounds_to_mp3()
+            apply_metadata(metadata['artist'], metadata['title'], year)
+            move_to_done()
+        except:
+            # Restart driver
+            driver.close()
 
-        convert_downloaded_sounds_to_mp3()
-        apply_metadata(metadata['artist'], metadata['title'], year)
-        move_to_done()
+            driver = driver_with_cookies_from_file("cookies.json")
+            # Set songs to download to /temp
+            params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
+            driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
+
         clear_temp()
