@@ -150,38 +150,24 @@ def apply_metadata(artist, title, year):
     print("image file is " + image_file)
     print("song file is " + song_file)
 
-    # Hacky way to use id3v2.3
-    # Find right way to do it using constant defined in eyed3/id3/__init__.py
-    # song = eyed3.load(os.path.join(path, song_file), (2, 3, 0))
+    # Open tag on song file
     tag = stagger.read_tag(os.path.join(path, song_file))
     
-    # https://eyed3.readthedocs.io/en/latest/eyed3.id3.html#module-eyed3.id3.tag
-
-    # song.tag.title = title
+    # Title, album
     tag[TIT2] = title
-
-    # song.tag.album = title
     tag[TALB] = title
     
-    # song.tag.artist = artist
+    # Artist, Album Artist
     tag[TPE1] = artist
-
-    # song.tag.album_artist = artist
     tag[TPE2] = artist
 
-    # song.tag.original_release_date = year
+    # Year (Date Of Release)
     tag[TDOR] = year
 
-    # Create ArtFile object containing art
-    # art_file = art.ArtFile(os.path.join(path, image_file))
-    # song.tag.images.set(art_file.id3_art_type, art_file.image_data, art_file.mime_type)
-    # print(art_file.id3_art_type)
-    # print(art_file.image_data)
-    # print(art_file.mime_type)
+    # Cover artwork (Attached PICture)
+    tag[APIC] = APIC(os.path.join(path, image_file))
 
-    # song.tag.save()
     tag.write()
-    
 
 def convert_downloaded_sounds_to_mp3():
 
