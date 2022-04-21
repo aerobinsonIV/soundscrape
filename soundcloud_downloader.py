@@ -8,6 +8,8 @@ import requests
 import pydub
 import eyed3
 
+from eyed3.plugins import art
+
 import undetected_chromedriver as uc
 
 def sc_login(output_file):
@@ -149,17 +151,26 @@ def apply_metadata(artist, title, year):
     print("image file is " + image_file)
     print("song file is " + song_file)
 
-    song = eyed3.load(os.path.join(path, song_file))
+    # Hacky way to use id3v2.3
+    # Find right way to do it using constant defined in eyed3/id3/__init__.py
+    song = eyed3.load(os.path.join(path, song_file), (2, 3, 0))
     
     # https://eyed3.readthedocs.io/en/latest/eyed3.id3.html#module-eyed3.id3.tag
 
-    song.tag.title = title
-    song.tag.album = title
+    # song.tag.title = title
+    # song.tag.album = title
     
-    song.tag.artist = artist
-    song.tag.album_artist = artist
+    # song.tag.artist = artist
+    # song.tag.album_artist = artist
 
-    song.tag.original_release_date = year
+    # song.tag.original_release_date = year
+
+    # Create ArtFile object containing art
+    art_file = art.ArtFile(os.path.join(path, image_file))
+    song.tag.images.set(art_file.id3_art_type, art_file.image_data, art_file.mime_type)
+    # print(art_file.id3_art_type)
+    # print(art_file.image_data)
+    # print(art_file.mime_type)
 
     song.tag.save()
     
@@ -209,7 +220,8 @@ if __name__ == '__main__':
 
     # year = get_upload_year(driver)
 
-    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/artwork.jpg"))
+    ## artwork *MUST* be titled cover-front so eyed3 doesn't shit itself
+    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/cover-front.jpg"))
 
     # print(f"Aritist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
 
