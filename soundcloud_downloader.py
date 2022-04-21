@@ -194,7 +194,19 @@ def convert_downloaded_sounds_to_mp3():
         outfile = os.path.join(path, mp3_filename)
         print(f"Converting {file} to mp3...")
         pydub.AudioSegment.from_file(infile).export(outfile, format='mp3', bitrate="320k")
+
+def move_to_done():
+    path = os.path.join(os.getcwd(), "temp/")
+    files = os.listdir(path)
     
+    for file in files:
+        if file[-4:] == ".mp3":
+            song_file = file
+            break
+    
+    # move song file to done folder
+    os.rename(os.path.join(path, song_file), os.path.join(os.path.join(os.getcwd(), "done/"), song_file))
+
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
@@ -226,4 +238,6 @@ if __name__ == '__main__':
     
     # convert_downloaded_sounds_to_mp3()
 
-    apply_metadata("Jousboxx", "Velocity", "2016")
+    # apply_metadata("Jousboxx", "Velocity", "2016")
+
+    move_to_done()
