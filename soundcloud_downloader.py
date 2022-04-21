@@ -169,6 +169,9 @@ def apply_metadata(artist, title, year):
 
     tag.write()
 
+    # Rename song file to title of song
+    os.rename(os.path.join(path, song_file), os.path.join(path, f"{title}.mp3"))
+
 def convert_downloaded_sounds_to_mp3():
 
     # Get all files in the temp dir
@@ -221,6 +224,6 @@ if __name__ == '__main__':
 
     # time.sleep(20)
     
-    convert_downloaded_sounds_to_mp3()
+    # convert_downloaded_sounds_to_mp3()
 
     apply_metadata("Jousboxx", "Velocity", "2016")
