@@ -207,6 +207,24 @@ def move_to_done():
     # move song file to done folder
     os.rename(os.path.join(path, song_file), os.path.join(os.path.join(os.getcwd(), "done/"), song_file))
 
+def clear_temp():
+    path = os.path.join(os.getcwd(), "temp/")
+    files = os.listdir(path)
+    
+    for file in files:
+        os.remove(os.path.join(path, file))
+
+def read_input_file():
+    with open("input.txt", "r") as f:
+        lines = f.readlines()
+
+    links = []
+
+    for line in lines:
+        links.append(line.strip())
+
+    return links
+
 # Stuff that launches undetected_chromedriver has to be in this main thingy to avoid multithreading problems or something
 # https://github.com/ultrafunkamsterdam/undetected-chromedriver/issues/561
 if __name__ == '__main__':
@@ -214,30 +232,33 @@ if __name__ == '__main__':
     # sc_login("cookies.json")
 
     driver = driver_with_cookies_from_file("cookies.json")
-    driver.get("https://soundcloud.com/jousboxx/velocity")
-
     # Set songs to download to /temp
     params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
     driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
-    dismiss_mastering_prompt_if_present(driver)
+    links = read_input_file()
 
-    button = get_direct_download_button(driver)
-    button.click()
+    for link in links:
 
-    metadata = get_title_and_artist(driver, False)
+        driver.get(link)
 
-    year = get_upload_year(driver)
+        dismiss_mastering_prompt_if_present(driver)
 
-    dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/cover-front.jpg"))
+        button = get_direct_download_button(driver)
+        button.click()
 
-    print(f"Artist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
+        metadata = get_title_and_artist(driver, False)
 
-    # Wait for song to download
-    time.sleep(20)
+        year = get_upload_year(driver)
 
-    convert_downloaded_sounds_to_mp3()
+        dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/cover-front.jpg"))
 
-    apply_metadata(metadata['artist'], metadata['title'], year)
+        print(f"Artist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
 
-    move_to_done()
+        # Wait for song to download
+        time.sleep(20)
+
+        convert_downloaded_sounds_to_mp3()
+        apply_metadata(metadata['artist'], metadata['title'], year)
+        move_to_done()
+        clear_temp()
