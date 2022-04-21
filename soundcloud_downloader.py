@@ -173,7 +173,7 @@ def apply_metadata(artist, title, year):
     os.rename(os.path.join(path, song_file), os.path.join(path, f"{title}.mp3"))
 
 def convert_downloaded_sounds_to_mp3():
-
+    print("here")
     # Get all files in the temp dir
 
     path = os.path.join(os.getcwd(), "temp/")
@@ -213,31 +213,31 @@ if __name__ == '__main__':
 
     # sc_login("cookies.json")
 
-    # driver = driver_with_cookies_from_file("cookies.json")
-    # driver.get("https://soundcloud.com/jousboxx/velocity")
+    driver = driver_with_cookies_from_file("cookies.json")
+    driver.get("https://soundcloud.com/jousboxx/velocity")
 
-    # # Set songs to download to /temp
-    # params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
-    # driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
+    # Set songs to download to /temp
+    params = {'behavior': 'allow', 'downloadPath': os.path.join(os.getcwd(), "temp")}
+    driver.execute_cdp_cmd('Page.setDownloadBehavior', params)
 
-    # dismiss_mastering_prompt_if_present(driver)
+    dismiss_mastering_prompt_if_present(driver)
 
-    # button = get_direct_download_button(driver)
-    # button.click()
+    button = get_direct_download_button(driver)
+    button.click()
 
-    # metadata = get_title_and_artist(driver, False)
+    metadata = get_title_and_artist(driver, False)
 
-    # year = get_upload_year(driver)
+    year = get_upload_year(driver)
 
-    ## artwork *MUST* be titled cover-front so eyed3 doesn't shit itself
-    # dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/cover-front.jpg"))
+    dl_cover_artwork(driver, os.path.join(os.getcwd(), "temp/cover-front.jpg"))
 
-    # print(f"Aritist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
+    print(f"Artist: {metadata['artist']}, title: {metadata['title']}, year: {year}")
 
-    # time.sleep(20)
-    
-    # convert_downloaded_sounds_to_mp3()
+    # Wait for song to download
+    time.sleep(20)
 
-    # apply_metadata("Jousboxx", "Velocity", "2016")
+    convert_downloaded_sounds_to_mp3()
+
+    apply_metadata(metadata['artist'], metadata['title'], year)
 
     move_to_done()
