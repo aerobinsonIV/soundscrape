@@ -133,3 +133,6 @@ dmypy.json
 
 cookies.json
 temp/*
+
+input.txt
+input_old.txt
