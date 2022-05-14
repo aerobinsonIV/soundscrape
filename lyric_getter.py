@@ -14,10 +14,17 @@ def get_lyrics_azlyrics(artist, title):
     
     lyrics_page_url = ""
 
+    found_result = False
+
     for anchor in anchors:
         # Valid links to lyrics pages have format like '1. "Breathe" - Mako'. All other a tags don't have periods.
         if("." in anchor.text):
             lyrics_page_url = anchor['href']
+            # We found at least one result
+            found_result = True
+
+    if not found_result:
+        return None
 
     # Get lyrics page
     lyrics_soup = soup_url(lyrics_page_url)
@@ -49,15 +56,15 @@ def get_lyrics_azlyrics(artist, title):
 
     return ""
 
+if __name__ == "__main__":
+    if(len(sys.argv) < 2):
+        print("Please specify artist artist and title.")
+        print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
+        exit()
 
-if(len(sys.argv) < 2):
-    print("Please specify artist artist and title.")
-    print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
-    exit()
+    artist = sys.argv[1]
+    title = sys.argv[2]
 
-artist = sys.argv[1]
-title = sys.argv[2]
+    print(f"Artist: {artist}, Title: {title}")
 
-print(f"Artist: {artist}, Title: {title}")
-
-print(get_lyrics_azlyrics(artist, title))
+    print(get_lyrics_azlyrics(artist, title))
