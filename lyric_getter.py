@@ -86,15 +86,15 @@ def get_lyrics_genius(artist, title):
 
     print(best_url)
 
-    # # Get lyrics page from link that best matched input title and artist
-    # lyrics_soup = soup_url(best_url)
-
-    # Search_soup is useless here, we need to use selenium to run Javascript
+    # Get lyrics page from link that best matched input title and artist
+    lyrics_soup = soup_url(best_url)
 
     # Class of lyrics div is "Lyrics__Container-sc-1ynbvzw-6 jYfhrf"
 
-    # # Find div tags
-    # divs = search_soup.find_all('div')
+    # Find div tags
+    lyrics_div = lyrics_soup.find_all(class_='Lyrics__Container-sc-1ynbvzw-6 jYfhrf')[0]
+
+    print(str(lyrics_div.encode_contents()))
 
     # for div in divs:
     #     # Song results pane is labelled by a div tag with this text

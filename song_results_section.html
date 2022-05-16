@@ -1,0 +1,177 @@
+<!----><div ng-if="$ctrl.section.hits.length > 0">
+  <div class="search_results_label text_label text_label--x_small_text_size text_label--gray search_results_label--no_horizontal_padding" ng-class="{'search_results_label--no_horizontal_padding': $ctrl.variants.no_horizontal_label_padding}" ng-bind=":: 'search.sections.' + $ctrl.section.type + '.title' | i18n">Songs</div>
+  <div ng-switch="$ctrl.section.type === 'album' || ($ctrl.section.type === 'top_hit' &amp;&amp; $ctrl.section.hits[0].index === 'album')">
+    <!---->
+
+    <!----><search-result-items ng-switch-default="" results="$ctrl.section.hits" limit-to="$ctrl.limit_to"><!----><div ng-repeat="hit in $ctrl.results | limitTo: $ctrl.limit_to">
+  <search-result-item hit="hit"><div class="u-quarter_vertical_margins u-clickable" ng-switch="$ctrl.hit.type" tracking="click" tracking-event="Search Result Tap">
+  <!----><mini-song-card object="$ctrl.hit.result" ng-switch-when="song" search-highlights="$ctrl.hit.highlights"><a ng-href="https://genius.com/Mako-breathe-lyrics" class="mini_card" ng-class="{'mini_card--small': $ctrl.variants.small}" href="https://genius.com/Mako-breathe-lyrics">
+  <div class="mini_card-thumbnail clipped_background_image--background_fill clipped_background_image" clipped-background-image=":: $ctrl.song.song_art_image_thumbnail_url" style="background-image: url(&quot;https://t2.genius.com/unsafe/75x75/https%3A%2F%2Fimages.genius.com%2F1702c48f49f71b263061a6128aa09131.300x300x1.jpg&quot;);">
+    <!---->
+  </div>
+  <div class="mini_card-info">
+    <div class="mini_card-title_and_subtitle">
+      <div class="mini_card-title">Breathe</div>
+      <div class="mini_card-subtitle">
+        Mako<!---->
+      </div>
+    </div>
+    <!---->
+    <!----><div ng-if="!$ctrl.excerpt_with_markup">
+      <!----><div ng-if="$ctrl.song.lyrics_state === 'complete'" class="mini_card-metadata">
+        <!---->
+        <!---->
+        <!----><span ng-if=":: $ctrl.song.stats.pageviews">
+          <svg src="eye.svg" class="inline_icon inline_icon--up_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 15.45"><path d="M11 2c4 0 7.26 3.85 8.6 5.72-1.34 1.87-4.6 5.73-8.6 5.73S3.74 9.61 2.4 7.73C3.74 5.86 7 2 11 2m0-2C4.45 0 0 7.73 0 7.73s4.45 7.73 11 7.73 11-7.73 11-7.73S17.55 0 11 0z"></path><path d="M11 5a2.73 2.73 0 1 1-2.73 2.73A2.73 2.73 0 0 1 11 5m0-2a4.73 4.73 0 1 0 4.73 4.73A4.73 4.73 0 0 0 11 3z"></path></svg>
+          41.3K
+        </span><!---->
+        <!---->
+      </div><!---->
+      <!---->
+      <!---->
+    </div><!---->
+  </div>
+</a>
+</mini-song-card><!---->
+  <!---->
+  <!---->
+  <!---->
+  <!----></div>
+</search-result-item>
+</div><!----><div ng-repeat="hit in $ctrl.results | limitTo: $ctrl.limit_to">
+  <search-result-item hit="hit"><div class="u-quarter_vertical_margins u-clickable" ng-switch="$ctrl.hit.type" tracking="click" tracking-event="Search Result Tap">
+  <!----><mini-song-card object="$ctrl.hit.result" ng-switch-when="song" search-highlights="$ctrl.hit.highlights"><a ng-href="https://genius.com/Mako-breathe-syris-remix-lyrics" class="mini_card" ng-class="{'mini_card--small': $ctrl.variants.small}" href="https://genius.com/Mako-breathe-syris-remix-lyrics">
+  <div class="mini_card-thumbnail clipped_background_image--background_fill clipped_background_image" clipped-background-image=":: $ctrl.song.song_art_image_thumbnail_url" style="background-image: url(&quot;https://t2.genius.com/unsafe/75x75/https%3A%2F%2Fimages.genius.com%2F9735cbba4ce2f7212929f89fbddd9b11.300x300x1.jpg&quot;);">
+    <!---->
+  </div>
+  <div class="mini_card-info">
+    <div class="mini_card-title_and_subtitle">
+      <div class="mini_card-title">Breathe (Syris Remix)</div>
+      <div class="mini_card-subtitle">
+        Mako<!---->
+      </div>
+    </div>
+    <!---->
+    <!----><div ng-if="!$ctrl.excerpt_with_markup">
+      <!----><div ng-if="$ctrl.song.lyrics_state === 'complete'" class="mini_card-metadata">
+        <!---->
+        <!---->
+        <!---->
+        <!---->
+      </div><!---->
+      <!---->
+      <!---->
+    </div><!---->
+  </div>
+</a>
+</mini-song-card><!---->
+  <!---->
+  <!---->
+  <!---->
+  <!----></div>
+</search-result-item>
+</div><!----><div ng-repeat="hit in $ctrl.results | limitTo: $ctrl.limit_to">
+  <search-result-item hit="hit"><div class="u-quarter_vertical_margins u-clickable" ng-switch="$ctrl.hit.type" tracking="click" tracking-event="Search Result Tap">
+  <!----><mini-song-card object="$ctrl.hit.result" ng-switch-when="song" search-highlights="$ctrl.hit.highlights"><a ng-href="https://genius.com/Mako-breathe-atatikas-out-of-air-mix-lyrics" class="mini_card" ng-class="{'mini_card--small': $ctrl.variants.small}" href="https://genius.com/Mako-breathe-atatikas-out-of-air-mix-lyrics">
+  <div class="mini_card-thumbnail clipped_background_image--background_fill clipped_background_image" clipped-background-image=":: $ctrl.song.song_art_image_thumbnail_url" style="background-image: url(&quot;https://t2.genius.com/unsafe/75x75/https%3A%2F%2Fimages.genius.com%2F9735cbba4ce2f7212929f89fbddd9b11.300x300x1.jpg&quot;);">
+    <!---->
+  </div>
+  <div class="mini_card-info">
+    <div class="mini_card-title_and_subtitle">
+      <div class="mini_card-title">Breathe (ATATIKA’s “Out Of Air” Mix)</div>
+      <div class="mini_card-subtitle">
+        Mako<!---->
+      </div>
+    </div>
+    <!---->
+    <!----><div ng-if="!$ctrl.excerpt_with_markup">
+      <!----><div ng-if="$ctrl.song.lyrics_state === 'complete'" class="mini_card-metadata">
+        <!---->
+        <!---->
+        <!---->
+        <!---->
+      </div><!---->
+      <!---->
+      <!---->
+    </div><!---->
+  </div>
+</a>
+</mini-song-card><!---->
+  <!---->
+  <!---->
+  <!---->
+  <!----></div>
+</search-result-item>
+</div><!----><div ng-repeat="hit in $ctrl.results | limitTo: $ctrl.limit_to">
+  <search-result-item hit="hit"><div class="u-quarter_vertical_margins u-clickable" ng-switch="$ctrl.hit.type" tracking="click" tracking-event="Search Result Tap">
+  <!----><mini-song-card object="$ctrl.hit.result" ng-switch-when="song" search-highlights="$ctrl.hit.highlights"><a ng-href="https://genius.com/Mako-breathe-felix-palmqvist-and-two-high-remix-lyrics" class="mini_card" ng-class="{'mini_card--small': $ctrl.variants.small}" href="https://genius.com/Mako-breathe-felix-palmqvist-and-two-high-remix-lyrics">
+  <div class="mini_card-thumbnail clipped_background_image--background_fill clipped_background_image" clipped-background-image=":: $ctrl.song.song_art_image_thumbnail_url" style="background-image: url(&quot;https://t2.genius.com/unsafe/75x75/https%3A%2F%2Fimages.genius.com%2F9735cbba4ce2f7212929f89fbddd9b11.300x300x1.jpg&quot;);">
+    <!---->
+  </div>
+  <div class="mini_card-info">
+    <div class="mini_card-title_and_subtitle">
+      <div class="mini_card-title">Breathe (Felix Palmqvist &amp; Two High Remix)</div>
+      <div class="mini_card-subtitle">
+        Mako<!---->
+      </div>
+    </div>
+    <!---->
+    <!----><div ng-if="!$ctrl.excerpt_with_markup">
+      <!----><div ng-if="$ctrl.song.lyrics_state === 'complete'" class="mini_card-metadata">
+        <!---->
+        <!---->
+        <!---->
+        <!---->
+      </div><!---->
+      <!---->
+      <!---->
+    </div><!---->
+  </div>
+</a>
+</mini-song-card><!---->
+  <!---->
+  <!---->
+  <!---->
+  <!----></div>
+</search-result-item>
+</div><!----><div ng-repeat="hit in $ctrl.results | limitTo: $ctrl.limit_to">
+  <search-result-item hit="hit"><div class="u-quarter_vertical_margins u-clickable" ng-switch="$ctrl.hit.type" tracking="click" tracking-event="Search Result Tap">
+  <!----><mini-song-card object="$ctrl.hit.result" ng-switch-when="song" search-highlights="$ctrl.hit.highlights"><a ng-href="https://genius.com/Mako-breathe-jilbare-x-future-magic-remix-lyrics" class="mini_card" ng-class="{'mini_card--small': $ctrl.variants.small}" href="https://genius.com/Mako-breathe-jilbare-x-future-magic-remix-lyrics">
+  <div class="mini_card-thumbnail clipped_background_image--background_fill clipped_background_image" clipped-background-image=":: $ctrl.song.song_art_image_thumbnail_url" style="background-image: url(&quot;https://t2.genius.com/unsafe/75x75/https%3A%2F%2Fimages.genius.com%2F9735cbba4ce2f7212929f89fbddd9b11.300x300x1.jpg&quot;);">
+    <!---->
+  </div>
+  <div class="mini_card-info">
+    <div class="mini_card-title_and_subtitle">
+      <div class="mini_card-title">Breathe (Jilbare X Future Magic Remix)</div>
+      <div class="mini_card-subtitle">
+        Mako<!---->
+      </div>
+    </div>
+    <!---->
+    <!----><div ng-if="!$ctrl.excerpt_with_markup">
+      <!----><div ng-if="$ctrl.song.lyrics_state === 'complete'" class="mini_card-metadata">
+        <!---->
+        <!---->
+        <!---->
+        <!---->
+      </div><!---->
+      <!---->
+      <!---->
+    </div><!---->
+  </div>
+</a>
+</mini-song-card><!---->
+  <!---->
+  <!---->
+  <!---->
+  <!----></div>
+</search-result-item>
+</div><!---->
+</search-result-items><!---->
+  </div>
+
+  <!----><a href="" prevent-default-click="" ng-if="$ctrl.section.type !== 'top_hit'" ng-click="$ctrl.on_show_more({section_type: $ctrl.section.type})" class="full_width_button u-bottom_margin" tracking="click" tracking-event="Search More Results Page View">
+    Show more songs
+    <svg class="inline_icon inline_icon--reading_size inline_icon--up_1" src="right_arrow.svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10.87 21.32"><path d="M1.5 21.32L0 20l8.21-9.34L0 1.32 1.5 0l9.37 10.66L1.5 21.32"></path></svg>
+  </a><!---->
+</div><!---->
