@@ -20,9 +20,28 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_lyrics_azlyrics(a_artist, a_title):
+def get_lyrics_genius(artist, title):
+    # PageHeaderSearchdesktop__Input-eom9vk-2 gajVFV
+    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
 
-    search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={a_artist}+{a_title}')
+    print(search_soup)
+
+    # Search_soup is useless here, we need to use selenium to run Javascript
+
+    # # Find div tags
+    # divs = search_soup.find_all('div')
+
+    # for div in divs:
+    #     # Song results pane is labelled by a div tag with this text
+    #     if div.text == "Songs":
+    #         song_results_pane = div.parent
+    #         break
+    
+    # print(song_results_pane)
+
+def get_lyrics_azlyrics(artist, title):
+
+    search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={artist}+{title}')
     
     # Find bold tags
     bolds = search_soup.find_all('b')
@@ -101,4 +120,4 @@ if __name__ == "__main__":
 
     print(f"Artist: {artist}, Title: {title}")
 
-    print(get_lyrics_azlyrics(artist, title))
+    get_lyrics_genius(artist, title)
