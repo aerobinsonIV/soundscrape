@@ -20,9 +20,12 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_lyrics_azlyrics(a_artist, a_title):
+def get_lyrics_azlyrics(artist, title):
 
-    search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={a_artist}+{a_title}')
+    artist = artist.lower()
+    title = title.lower()
+
+    search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={artist}+{title}')
     
     # Find bold tags
     bolds = search_soup.find_all('b')
@@ -44,8 +47,8 @@ def get_lyrics_azlyrics(a_artist, a_title):
         if("." in anchor.text):
 
             # just be happy it's not regex
-            a_title = anchor.text[4:anchor.text[4:].find("\"") + 4]
-            a_artist = anchor.text[anchor.text[1:].find("-") + 3:]
+            a_title = anchor.text[4:anchor.text[4:].find("\"") + 4].strip().lower()
+            a_artist = anchor.text[anchor.text[1:].find("-") + 3:].strip().lower()
 
             confidence = match_confidence(title, artist, a_title, a_artist)
             if confidence > best_confidence:
