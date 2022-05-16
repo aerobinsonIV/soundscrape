@@ -2,6 +2,9 @@ import sys
 import requests
 from bs4 import BeautifulSoup
 from bs4 import Comment
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
@@ -21,12 +24,74 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
     return artist_ratio + title_ratio
 
 def get_lyrics_genius(artist, title):
-    # PageHeaderSearchdesktop__Input-eom9vk-2 gajVFV
-    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+    
+    # Make input case insensitive
+    artist = artist.lower()
+    title = title.lower()
 
-    print(search_soup)
+    # PageHeaderSearchdesktop__Input-eom9vk-2 gajVFV
+    # search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+
+    # print(search_soup)
+
+    # driver = webdriver.Firefox()
+
+    # driver.get(f'https://genius.com/search?q={artist}+{title}')
+    # time.sleep(1)
+
+    # # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
+    # result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
+
+    # for item in result_sections:
+    #     try:
+    #         result_label = item.find_element(By.CLASS_NAME, "search_results_label")
+    #         if result_label.get_attribute('innerHTML') == "Songs":
+    #             song_results_section_html = item.get_attribute('innerHTML')
+    #             break
+    #     except:
+    #         # This page is weird and not all the results sections have this label
+    #         continue
+    
+    # driver.close()
+
+    with open("song_results_section.html", "r", encoding="utf-8") as f:
+        song_results_section_html = f.read() 
+
+    search_soup = BeautifulSoup(song_results_section_html, 'html.parser')
+
+    anchors = search_soup.find_all(class_='mini_card')
+
+    found_result = False
+    best_confidence = 0
+
+    for anchor in anchors:
+
+        a_title = anchor.find_all(class_='mini_card-title')[0].text.strip().lower()
+        a_artist = anchor.find_all(class_='mini_card-subtitle')[0].text.strip().lower()
+
+        confidence = match_confidence(title, artist, a_title, a_artist)
+        if confidence > best_confidence:
+            best_url = anchor['href']
+            best_confidence = confidence
+        
+        # We found at least one result
+        found_result = True
+
+    if not found_result:
+        return None
+
+    if best_confidence == 0:
+        # None of the results were even close
+        return None
+
+    print(best_url)
+
+    # # Get lyrics page from link that best matched input title and artist
+    # lyrics_soup = soup_url(best_url)
 
     # Search_soup is useless here, we need to use selenium to run Javascript
+
+    # Class of lyrics div is "Lyrics__Container-sc-1ynbvzw-6 jYfhrf"
 
     # # Find div tags
     # divs = search_soup.find_all('div')
@@ -118,6 +183,6 @@ if __name__ == "__main__":
     artist = sys.argv[1]
     title = sys.argv[2]
 
-    print(f"Artist: {artist}, Title: {title}")
+    # print(f"Artist: {artist}, Title: {title}")
 
     get_lyrics_genius(artist, title)
