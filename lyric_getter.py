@@ -29,33 +29,27 @@ def get_lyrics_genius(artist, title):
     artist = artist.lower()
     title = title.lower()
 
-    # PageHeaderSearchdesktop__Input-eom9vk-2 gajVFV
-    # search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
 
-    # print(search_soup)
+    driver = webdriver.Firefox()
 
-    # driver = webdriver.Firefox()
+    driver.get(f'https://genius.com/search?q={artist}+{title}')
+    time.sleep(1)
 
-    # driver.get(f'https://genius.com/search?q={artist}+{title}')
-    # time.sleep(1)
+    # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
+    result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
 
-    # # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
-    # result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
-
-    # for item in result_sections:
-    #     try:
-    #         result_label = item.find_element(By.CLASS_NAME, "search_results_label")
-    #         if result_label.get_attribute('innerHTML') == "Songs":
-    #             song_results_section_html = item.get_attribute('innerHTML')
-    #             break
-    #     except:
-    #         # This page is weird and not all the results sections have this label
-    #         continue
+    for item in result_sections:
+        try:
+            result_label = item.find_element(By.CLASS_NAME, "search_results_label")
+            if result_label.get_attribute('innerHTML') == "Songs":
+                song_results_section_html = item.get_attribute('innerHTML')
+                break
+        except:
+            # This page is weird and not all the results sections have this label
+            continue
     
-    # driver.close()
-
-    with open("song_results_section.html", "r", encoding="utf-8") as f:
-        song_results_section_html = f.read() 
+    driver.close()
 
     search_soup = BeautifulSoup(song_results_section_html, 'html.parser')
 
@@ -94,15 +88,25 @@ def get_lyrics_genius(artist, title):
     # Find div tags
     lyrics_div = lyrics_soup.find_all(class_='Lyrics__Container-sc-1ynbvzw-6 jYfhrf')[0]
 
-    print(str(lyrics_div.encode_contents()))
+    lyrics = ''
+    last_item_break = False
 
-    # for div in divs:
-    #     # Song results pane is labelled by a div tag with this text
-    #     if div.text == "Songs":
-    #         song_results_pane = div.parent
-    #         break
-    
-    # print(song_results_pane)
+    for item in lyrics_div.contents[1:]:
+        str_item = str(item)
+        if str_item[:1] == "<":
+            if str_item == "<br/>":
+                if last_item_break:
+                    lyrics += "\n"
+                else:
+                    last_item_break = True
+            continue
+        # Ignore labelled song sections, e.g. [Chorus]. 
+        elif str_item[:1] != "[":
+            lyrics += str_item + "\n"
+        
+        last_item_break = False
+
+    return lyrics
 
 def get_lyrics_azlyrics(artist, title):
 
@@ -183,6 +187,4 @@ if __name__ == "__main__":
     artist = sys.argv[1]
     title = sys.argv[2]
 
-    # print(f"Artist: {artist}, Title: {title}")
-
-    get_lyrics_genius(artist, title)
+    print(get_lyrics_genius(artist, title))
