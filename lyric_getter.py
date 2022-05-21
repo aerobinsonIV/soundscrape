@@ -1,7 +1,13 @@
+from concurrent.futures import process
+from copyreg import constructor
 import sys
 import requests
 from bs4 import BeautifulSoup
 from bs4 import Comment
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+import re
 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
@@ -20,10 +26,157 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_lyrics_azlyrics(artist, title):
-
+def get_lyrics_genius(artist, title):
+    
+    # Make input case insensitive
     artist = artist.lower()
     title = title.lower()
+
+    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+
+    driver = webdriver.Firefox()
+
+    driver.get(f'https://genius.com/search?q={artist}+{title}')
+    time.sleep(1)
+
+    # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
+    result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
+
+    for item in result_sections:
+        try:
+            result_label = item.find_element(By.CLASS_NAME, "search_results_label")
+            if result_label.get_attribute('innerHTML') == "Songs":
+                song_results_section_html = item.get_attribute('innerHTML')
+                break
+        except:
+            # This page is weird and not all the results sections have this label
+            continue
+    
+    driver.close()
+
+    search_soup = BeautifulSoup(song_results_section_html, 'html.parser')
+
+    anchors = search_soup.find_all(class_='mini_card')
+
+    found_result = False
+    best_confidence = 0
+
+    for anchor in anchors:
+
+        a_title = anchor.find_all(class_='mini_card-title')[0].text.strip().lower()
+        a_artist = anchor.find_all(class_='mini_card-subtitle')[0].text.strip().lower()
+
+        confidence = match_confidence(title, artist, a_title, a_artist)
+        if confidence > best_confidence:
+            best_url = anchor['href']
+            best_confidence = confidence
+        
+        # We found at least one result
+        found_result = True
+
+    if not found_result:
+        return None
+
+    if best_confidence == 0:
+        # None of the results were even close
+        return None
+
+    print(best_url)
+
+    # Get lyrics page from link that best matched input title and artist
+    lyrics_soup = soup_url(best_url)
+
+    # Find div tags
+    lyrics_div = lyrics_soup.find_all(class_='Lyrics__Container-sc-1ynbvzw-6 jYfhrf')[0]
+    
+    # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
+    # https://stackoverflow.com/a/14599280
+    lyrics_div_no_brackets = BeautifulSoup(re.sub("[\[].*?[\]]", "\n", str(lyrics_div)), 'html.parser').contents[0]
+    
+    return genius_parse_helper(lyrics_div_no_brackets)
+
+def genius_parse_helper(input_soup):
+    contents = input_soup.contents
+    lyrics = ""
+    last_item_break = False
+    last_line_break = False
+
+    for item in contents:
+
+        if item.name == "a":
+            # This is an annotated section, comprised of a span wrapped in an anchor tag
+            # Get inside the anchor and recurse into the span
+            processed = genius_parse_helper(item.contents[0])
+            
+            if len(processed) == 1:
+                # Probably just a line break, pretend we never saw this
+                continue
+
+            # Trim out extra line break(s) that somehow sneak onto end of every annotated section. Leave the last one.
+            while len(processed) > 1 and processed[-1] == "\n":
+                processed = processed[:-1]
+
+            for line in processed.split("\n"):
+                if len(line) > 1:
+                    lyrics += line + "\n"
+            
+        elif item.name == "i":
+            # Recurse into the italicized section
+            processed = genius_parse_helper(item)
+            lines = processed.split("\n")
+
+            # If a lyric section is italicized, it's probably background/reverbed vocals.
+            # Since we can't italicize plaintext, we instead represent this effect by wrapping the lyrics in parens.
+            with_parens = ""
+            for line in lines:
+                # Ignore lines that are already parenthesized and lines that are just newlines
+                if len(line) > 1 and line[0] != "(":
+                    with_parens += f"({line})\n"
+            lyrics += with_parens
+        elif item.name == "br":
+
+            # Put down one line break if two are encountered in a row in the HTML (because the first is just used to terminal lines on the site)
+            # Don't do two consecutive emtpy lines in the output
+            if not last_line_break:
+                if last_item_break:
+                    lyrics += "\n"
+                    last_line_break = True
+                else:
+                    last_item_break = True
+            continue
+
+        elif item.name == "span" or item.name == "div":
+            pass
+        else:
+            # Disregard single parens, these usually occur before italicized sections which will be parenthesized anyway
+            if str(item) != "(" and str(item) != ")":
+                if str(item) == "\n":
+                    if not last_line_break:
+                        lyrics += "\n"
+                        last_line_break = True
+                        continue
+                else:
+                    # Also look for single parens at the start and end of a text line, because the paren could be directly adjacent to an italicized element
+                    if str(item)[-1] == "(":
+                        lyrics += str(item)[:-1] + "\n"
+                    elif str(item)[1] == ")":
+                        lyrics += str(item)[1:] + "\n"
+                    else:
+                        lyrics += str(item) + "\n"
+        
+        last_item_break = False
+        last_line_break = False
+    
+    # Trim excess newlines off start and end
+    if lyrics[0] == "\n":
+        lyrics = lyrics[1:]
+
+    while len(lyrics) > 1 and lyrics[-1] == "\n":
+            lyrics = lyrics[:-1]
+
+    return lyrics
+
+def get_lyrics_azlyrics(artist, title):
 
     search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={artist}+{title}')
     
@@ -101,7 +254,5 @@ if __name__ == "__main__":
 
     artist = sys.argv[1]
     title = sys.argv[2]
-
-    print(f"Artist: {artist}, Title: {title}")
 
     print(get_lyrics_azlyrics(artist, title))
