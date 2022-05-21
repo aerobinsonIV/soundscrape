@@ -1,7 +1,4 @@
-from concurrent.futures import process
-from copyreg import constructor
 import sys
-import requests
 from bs4 import BeautifulSoup
 from bs4 import Comment
 from selenium import webdriver
