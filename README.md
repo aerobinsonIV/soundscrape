@@ -1,6 +1,10 @@
 # SoundScrape
 Tools to help automate the process of downloading songs and embedding accurate and high-quality metadata.
 
+## Dependencies
+```
+pip install youtube_dl
+```
 
 ## Use case goal
 
