@@ -6,6 +6,8 @@ from selenium.webdriver.common.by import By
 import time
 import re
 
+LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
+
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
 from soup_url import soup_url
@@ -84,7 +86,7 @@ def get_lyrics_genius(artist, title):
     lyrics_soup = soup_url(best_url)
 
     # Find div tags
-    lyrics_div = lyrics_soup.find_all(class_='Lyrics__Container-sc-1ynbvzw-6 jYfhrf')[0]
+    lyrics_div = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)[0]
     
     # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
     # https://stackoverflow.com/a/14599280
