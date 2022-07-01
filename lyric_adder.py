@@ -14,5 +14,22 @@ def add_lyrics(song_file, lyrics):
     tag['USLT'] = "eng|" + lyrics
     tag.write(os.path.join(path, song_file))
 
+def notepad(lyrics):
+
+    lyric_file_path = os.path.join(os.path.join(os.getcwd(), "temp"), "lyrics.txt")
+
+    with open(lyric_file_path, "w") as f:
+        f.write(lyrics)
+
+    # move along hackers, nothing to see here
+    os.system("notepad " + lyric_file_path)
+
+    with open(lyric_file_path, "r") as f:
+        edited_lyrics = f.read()
+
+    os.remove(lyric_file_path)
+
+    return(edited_lyrics)
+
 if __name__ == "__main__":
-    add_lyrics("trippp3.mp3", "poggers\nweufbwieufbwiuefbwiefbu\nweofwubireubergergergeg")
+    print(notepad("pee pee poo poo\nweee weee wooo q"))
