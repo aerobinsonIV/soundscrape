@@ -25,9 +25,8 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_lyrics_genius(artist, title):
-    
-    # Make input case insensitive
+def get_html_genius(artist, title, filename = None):
+     # Make input case insensitive
     artist = artist.lower()
     title = title.lower()
 
@@ -83,8 +82,19 @@ def get_lyrics_genius(artist, title):
     print(best_url)
 
     # Get lyrics page from link that best matched input title and artist
-    lyrics_soup = soup_url(best_url)
+    lyrics_page_soup = soup_url(best_url)
 
+    lyrics_page_html = str(lyrics_page_soup.prettify())
+
+    if filename != None:
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(lyrics_page_html)
+
+    return lyrics_page_html
+
+def extract_lyrics_from_html_genius(html):
+
+    lyrics_soup = BeautifulSoup(str(html), 'html.parser')
     # Find div tags
     lyrics_div = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)[0]
     
@@ -250,12 +260,17 @@ def get_lyrics_azlyrics(artist, title):
     return ""
 
 if __name__ == "__main__":
-    if(len(sys.argv) < 2):
-        print("Please specify artist artist and title.")
-        print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
-        exit()
+    # if(len(sys.argv) < 2):
+    #     print("Please specify artist artist and title.")
+    #     print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
+    #     exit()
 
-    artist = sys.argv[1]
-    title = sys.argv[2]
+    # artist = sys.argv[1]
+    # title = sys.argv[2]
 
-    print(get_lyrics_azlyrics(artist, title))
+    # get_html_genius(artist, title, "beauty_in_death.html")
+
+    with open("beauty_in_death.html", 'r', encoding='utf-8') as f:
+        print(extract_lyrics_from_html_genius(f.read()))
+
+    # print(extract_lyrics_from_html_genius(artist, title))
