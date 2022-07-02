@@ -1,7 +1,7 @@
 import os
 import sys
 
-from lyric_getter import get_lyrics_azlyrics, get_lyrics_genius
+from lyric_getter import get_lyrics_azlyrics, extract_lyrics_from_html_genius
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
@@ -37,14 +37,34 @@ def notepad(lyrics):
 
 if __name__ == "__main__":
     if(len(sys.argv) < 2):
-        print("Please specify a file.")
+        print("Please specify a file or folder.")
         exit()
+    filenames = []
 
-    filename = sys.argv[1]
-    scanned_title, scanned_artist = scan_file(filename)
-    
-    lyrics = get_lyrics_genius(scanned_artist, scanned_title)
+    if os.path.isfile(sys.argv[1]):
+        # This is a single file
+        filenames.append(sys.argv[1])
 
-    edited_lyrics = notepad(lyrics)
+    elif os.path.isdir(sys.argv[1]):
+        dir_list = os.listdir(sys.argv[1])
+        for file in dir_list:
+            filenames.append(os.path.join(sys.argv[1], file))
 
-    add_lyrics(filename, edited_lyrics)
+    print("About to process the following files:")
+    for filename in filenames:
+        print(filename)
+
+    for filename in filenames:
+
+        scanned_title, scanned_artist = scan_file(filename)
+
+        # If one song fails, just ignore it and keep going
+        try:
+            
+            lyrics = extract_lyrics_from_html_genius(scanned_artist, scanned_title)
+
+            edited_lyrics = notepad(lyrics)
+
+            add_lyrics(filename, edited_lyrics)
+        except:
+            print(f"Failed to retrieve lyrics for {scanned_artist} - {scanned_title}.")
