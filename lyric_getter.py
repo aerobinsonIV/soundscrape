@@ -1,3 +1,4 @@
+import os
 import sys
 from bs4 import BeautifulSoup
 from bs4 import Comment
@@ -25,10 +26,27 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_html_genius(artist, title, filename = None):
-     # Make input case insensitive
+def get_html_genius(artist, title, cache = False):
+    # Make input case insensitive
     artist = artist.lower()
     title = title.lower()
+
+    cache_path = os.path.join(os.getcwd(), "cached_html")
+    cache_filename = re.sub(" ", "_", artist) + "_" + re.sub(" ", "_", title) + "_genius.html"
+    cache_full_path = os.path.join(cache_path, cache_filename)
+    
+    # Does cache dir exist?
+    if os.path.isdir(cache_path):
+
+        # Is the HTML for this particular song cached?
+        if os.path.isfile(cache_full_path):
+            with open(cache_full_path, "r", encoding="utf-8") as f:
+                html = f.read()
+            
+            print(f"Found HTML for {artist} - {title} in cache!")
+            return html
+    else:
+        os.mkdir(cache_path)
 
     search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
 
@@ -84,8 +102,9 @@ def get_html_genius(artist, title, filename = None):
 
     lyrics_page_html = str(lyrics_page_soup.prettify())
 
-    if filename != None:
-        with open(filename, "w", encoding="utf-8") as f:
+    # Cache HTML for this song
+    if cache:
+        with open(cache_full_path, "w", encoding="utf-8") as f:
             f.write(lyrics_page_html)
 
     return lyrics_page_html
@@ -212,8 +231,8 @@ def genius_parse_helper(input_soup):
 
     return lyrics
 
-def get_lyrics_genius(artist, title):
-    html = get_html_genius(artist, title)
+def get_lyrics_genius(artist, title, cache=False):
+    html = get_html_genius(artist, title, cache)
     return extract_lyrics_from_html_genius(html)
 
 def get_lyrics_azlyrics(artist, title):
@@ -293,18 +312,15 @@ def get_lyrics_azlyrics(artist, title):
     return ""
 
 if __name__ == "__main__":
-    # if(len(sys.argv) < 2):
-    #     print("Please specify artist artist and title.")
-    #     print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
-    #     exit()
+    if(len(sys.argv) < 2):
+        print("Please specify artist artist and title.")
+        print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
+        exit()
 
-    # artist = sys.argv[1]
-    # title = sys.argv[2]
+    artist = sys.argv[1]
+    title = sys.argv[2]
 
-    # get_html_genius(artist, title, "call_me_back.html")
-
-    with open("call_me_back.html", 'r', encoding='utf-8') as f:
-        # extract_lyrics_from_html_genius(f.read())
-        print(extract_lyrics_from_html_genius(f.read()))
-
-    # print(extract_lyrics_from_html_genius(artist, title))
+    # Since this script is being run standalone rather than having its functions called by lyric_adder,
+    # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
+    # If we're debugging parsing.
+    print(get_lyrics_genius(artist, title, cache=True))
