@@ -262,6 +262,8 @@ def get_lyrics_azlyrics(artist, title):
         # None of the results were even close
         return None
 
+    print(best_url)
+
     # Get lyrics page from link that best matched input title and artist
     lyrics_soup = soup_url(best_url)
 
