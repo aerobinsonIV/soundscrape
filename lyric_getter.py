@@ -212,6 +212,10 @@ def genius_parse_helper(input_soup):
 
     return lyrics
 
+def get_lyrics_genius(artist, title):
+    html = get_html_genius(artist, title)
+    return extract_lyrics_from_html_genius(html)
+
 def get_lyrics_azlyrics(artist, title):
 
     search_soup = soup_url(f'https://search.azlyrics.com/search.php?q={artist}+{title}')

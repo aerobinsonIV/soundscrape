@@ -1,7 +1,7 @@
 import os
 import sys
 
-from lyric_getter import get_lyrics_azlyrics, extract_lyrics_from_html_genius
+from lyric_getter import get_lyrics_genius
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
@@ -61,7 +61,7 @@ if __name__ == "__main__":
         # If one song fails, just ignore it and keep going
         try:
             
-            lyrics = extract_lyrics_from_html_genius(scanned_artist, scanned_title)
+            lyrics = get_lyrics_genius(scanned_artist, scanned_title)
 
             edited_lyrics = notepad(lyrics)
 
