@@ -79,8 +79,6 @@ def get_html_genius(artist, title, filename = None):
         # None of the results were even close
         return None
 
-    print(best_url)
-
     # Get lyrics page from link that best matched input title and artist
     lyrics_page_soup = soup_url(best_url)
 
@@ -96,13 +94,24 @@ def extract_lyrics_from_html_genius(html):
 
     lyrics_soup = BeautifulSoup(str(html), 'html.parser')
     # Find div tags
-    lyrics_div = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)[0]
+    lyrics_divs = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)
+
+    lyrics_divs_no_brackets_str = ""
+
+    for div in lyrics_divs:
+        # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
+        # https://stackoverflow.com/a/14599280
+        lyrics_divs_no_brackets_str += re.sub("[\[].*?[\]]", "\n", str(div))
     
-    # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
-    # https://stackoverflow.com/a/14599280
-    lyrics_div_no_brackets = BeautifulSoup(re.sub("[\[].*?[\]]", "\n", str(lyrics_div)), 'html.parser').contents[0]
-    
-    return genius_parse_helper(lyrics_div_no_brackets)
+    soup_list = BeautifulSoup(lyrics_divs_no_brackets_str, 'html.parser').contents
+
+    all_lyrics = ""
+
+    # Loop through each top-level lyrics div (usually one or a few)
+    for soup in soup_list:
+        all_lyrics += genius_parse_helper(soup)
+
+    return all_lyrics
 
 def genius_parse_helper(input_soup):
     contents = input_soup.contents
@@ -271,6 +280,7 @@ if __name__ == "__main__":
     # get_html_genius(artist, title, "beauty_in_death.html")
 
     with open("beauty_in_death.html", 'r', encoding='utf-8') as f:
+        # extract_lyrics_from_html_genius(f.read())
         print(extract_lyrics_from_html_genius(f.read()))
 
     # print(extract_lyrics_from_html_genius(artist, title))
