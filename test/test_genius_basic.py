@@ -64,3 +64,12 @@ class BasicTests(TestCase):
 
     def test_square_brackets_italics_newlines(self):
         basic_test(self, "square_brackets_italics_newlines")
+
+    def test_annotation(self):
+        basic_test(self, "annotation")
+
+    def test_annotation_same_line(self):
+        basic_test(self, "annotation_same_line")
+
+    def test_span(self):
+        basic_test(self, "span")
