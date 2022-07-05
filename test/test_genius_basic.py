@@ -50,8 +50,17 @@ class BasicTests(TestCase):
     def test_italics(self):
         basic_test(self, "italics")
 
-    def test_italic_parens_(self):
+    def test_italic_parens(self):
         basic_test(self, "italic_parens")
 
-    def test_italic_parens_inverted(self):
+    def test_square_brackets(self):
         basic_test(self, "italic_parens_inverted")
+
+    def test_square_brackets(self):
+        basic_test(self, "square_brackets")
+
+    def test_square_brackets_italics(self):
+        basic_test(self, "square_brackets_italics")
+
+    def test_square_brackets_italics_newlines(self):
+        basic_test(self, "square_brackets_italics_newlines")
