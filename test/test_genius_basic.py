@@ -2,7 +2,10 @@ from unittest import TestCase
 import os
 from lyric_getter import extract_lyrics_from_html_genius
 
-def basic_test(tester, name):
+def format_output_comparison(actual: str, expected: str):
+    return f"\n----------------------\nExpected output:\n----------------------\n{expected}\n----------------------\nActual output:\n----------------------\n{actual}\n----------------------"
+
+def basic_test(tester: TestCase, name):
     input_html_filename = os.path.join("test/test_html_genius_basic", name + ".html")
     expected_output_filename = os.path.join("test/test_output_genius_basic", name + ".txt")
 
@@ -14,7 +17,7 @@ def basic_test(tester, name):
 
     actual_output = extract_lyrics_from_html_genius(input_html)
 
-    tester.assertEqual(actual_output, expected_output)
+    tester.assertEqual(actual_output, expected_output, format_output_comparison(actual_output, expected_output))
 
 class BasicTests(TestCase):
     def test_text(self):
@@ -70,6 +73,18 @@ class BasicTests(TestCase):
 
     def test_annotation_same_line(self):
         basic_test(self, "annotation_same_line")
+
+    def test_annotation_break_outside_break(self):
+        basic_test(self, "annotation_break_outside_break")
+
+    def test_annotation_mid_breaks(self):
+        basic_test(self, "annotation_mid_breaks")
+
+    def test_annotation_mid_newlines(self):
+        basic_test(self, "annotation_mid_newlines")
+
+    def test_annotation_mid_mixed(self):
+        basic_test(self, "annotation_mid_mixed")
 
     def test_span(self):
         basic_test(self, "span")
