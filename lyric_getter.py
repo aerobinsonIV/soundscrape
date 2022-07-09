@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from bs4 import Comment
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 import time
 import re #regex 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
@@ -59,11 +61,13 @@ def get_html_genius(artist, title, cache = False):
     driver.install_addon(ublock_origin_path)
     
     driver.get(f'https://genius.com/search?q={processed_artist}+{processed_title}')
-    time.sleep(1)
 
-    # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "search-result-section")))
     result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
 
+    wait_for_label = WebDriverWait(driver, 180)
+    wait_for_label.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, "search_results_label")))
     for item in result_sections:
         try:
             result_label = item.find_element(By.CLASS_NAME, "search_results_label")
@@ -322,4 +326,5 @@ if __name__ == "__main__":
     # Since this script is being run standalone rather than having its functions called by lyric_adder,
     # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
     # If we're debugging parsing.
-    print(get_lyrics_genius(artist, title, cache=True))
+    # print(get_lyrics_genius(artist, title, cache=True))
+    print(get_lyrics_genius(artist, title, cache=False))
