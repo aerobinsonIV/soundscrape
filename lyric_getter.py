@@ -122,7 +122,10 @@ def extract_lyrics_from_html_genius(html):
         no_brackets = re.sub("[\[].*?[\]]", "\n", str(div))
 
         # Remove extra backslashes preceding newlines
-        lyrics_divs_preprocessed_str += re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", no_brackets))
+        no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", no_brackets))
+
+        # Remove newlines
+        lyrics_divs_preprocessed_str += re.sub("\n", "", no_leading_slashes_newlines)
     
     soup_list = BeautifulSoup(lyrics_divs_preprocessed_str, 'html.parser').contents
 
@@ -139,6 +142,13 @@ def extract_lyrics_from_html_genius(html):
         all_lyrics = all_lyrics[:-1]
 
     return all_lyrics
+
+def remove_newlines(input_string):
+    # Remove extra backslashes preceding newlines
+    no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", input_string))
+
+    # Remove newlines
+    return re.sub("\n", "", no_leading_slashes_newlines)
 
 def genius_parse_helper(input_soup, last_item_break_recurse=False, last_line_break_recurse=False, last_item_anchor_recurse=False):
     

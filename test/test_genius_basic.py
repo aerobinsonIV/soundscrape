@@ -1,9 +1,24 @@
 from unittest import TestCase
 import os
-from lyric_getter import extract_lyrics_from_html_genius
+from lyric_getter import extract_lyrics_from_html_genius, remove_newlines
 
 def format_output_comparison(actual: str, expected: str):
     return f"\n----------------------\nExpected output:\n----------------------\n{expected}\n----------------------\nActual output:\n----------------------\n{actual}\n----------------------"
+
+def remove_newlines_test(tester: TestCase, name):
+    input_filename = os.path.join("test/remove_newlines_input", name + ".txt")
+    expected_output_filename = os.path.join("test/remove_newlines_output", name + ".txt")
+
+    with open(input_filename, "r", encoding="utf-8") as f:
+        input_html = f.read()
+
+    with open(expected_output_filename, "r", encoding="utf-8") as f:
+        expected_output = f.read()
+
+    actual_output = remove_newlines(input_html)
+    
+    format_output_comparison(actual_output, expected_output)
+    tester.assertEqual(actual_output, expected_output)
 
 def basic_test(tester: TestCase, name):
     input_html_filename = os.path.join("test/test_html_genius_basic", name + ".html")
@@ -16,8 +31,16 @@ def basic_test(tester: TestCase, name):
         expected_output = f.read()
 
     actual_output = extract_lyrics_from_html_genius(input_html)
+    
+    format_output_comparison(actual_output, expected_output)
+    tester.assertEqual(actual_output, expected_output)
 
-    tester.assertEqual(actual_output, expected_output, format_output_comparison(actual_output, expected_output))
+class RemoveNewlineTests(TestCase):
+    def test_remove_newlines_basic(self):
+        remove_newlines_test(self, "remove_newlines_basic")   
+    
+    def test_remove_newlines_advanced(self):
+        remove_newlines_test(self, "remove_newlines_basic")   
 
 class BasicTests(TestCase):
     def test_text(self):
