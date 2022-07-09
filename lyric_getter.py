@@ -1,6 +1,6 @@
 import os
 import sys
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup
 from bs4 import Comment
 from selenium import webdriver
 from selenium.webdriver.common.by import By

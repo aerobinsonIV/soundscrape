@@ -18,15 +18,34 @@ def add_lyrics(song_file, lyrics):
     tag['USLT'] = "eng|" + ascii_lyrics.decode()
     tag.write(song_file)
 
-def notepad(lyrics):
+def gen_filename_helper(input_string):
+    illegal_chars = ["\"", "*", "/", ":", "<", ">", "?", "\\", "|"]
+    processed_string = input_string.strip()
 
-    lyric_file_path = os.path.join(os.path.join(os.getcwd(), "temp"), "lyrics.txt")
+    for char in illegal_chars:
+        processed_string = processed_string.replace(char, "")
+
+    return processed_string.replace(" ", "_").lower()
+
+def generate_lyrics_filename(artist, title):
+
+    cleaned_artist = gen_filename_helper(artist)
+    cleaned_title = gen_filename_helper(title)
+
+    filename = f"{cleaned_artist}_{cleaned_title}.txt"
+
+    return filename
+
+def notepad(artist, title, lyrics):
+
+    lyric_filename = generate_lyrics_filename(artist, title)
+    lyric_file_path = os.path.join(os.path.join(os.getcwd(), "temp"), lyric_filename)
 
     with open(lyric_file_path, "w", encoding='utf8') as f:
         f.write(lyrics)
 
     # move along hackers, nothing to see here
-    os.system("notepad " + lyric_file_path)
+    os.system(f"notepad \"{lyric_file_path}\"")
 
     with open(lyric_file_path, "r", encoding='utf8') as f:
         edited_lyrics = f.read()
@@ -63,7 +82,7 @@ if __name__ == "__main__":
             
             lyrics = get_lyrics_genius(scanned_artist, scanned_title)
 
-            edited_lyrics = notepad(lyrics)
+            edited_lyrics = notepad(scanned_artist, scanned_title, lyrics)
 
             add_lyrics(filename, edited_lyrics)
         except:
