@@ -25,6 +25,9 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
+def search_term_preprocessing(input_string):
+    return input_string.replace("&", "%26")
+
 def get_html_genius(artist, title, cache = False):
     # Make input case insensitive
     artist = artist.lower()
@@ -47,11 +50,11 @@ def get_html_genius(artist, title, cache = False):
     else:
         os.mkdir(cache_path)
 
-    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+    processed_artist = search_term_preprocessing(artist)
+    processed_title = search_term_preprocessing(title)
 
     driver = webdriver.Firefox()
-
-    driver.get(f'https://genius.com/search?q={artist}+{title}')
+    driver.get(f'https://genius.com/search?q={processed_artist}+{processed_title}')
     time.sleep(1)
 
     # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
