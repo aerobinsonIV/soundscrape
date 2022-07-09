@@ -118,3 +118,6 @@ class BasicTests(TestCase):
     
     def test_annotated_sqaure_brackets(self):
         basic_test(self, "annotated_square_brackets")
+
+    def test_bold(self):
+        basic_test(self, "bold")

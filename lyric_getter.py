@@ -185,6 +185,9 @@ def genius_parser(input_soup):
         elif item.name == "i":
             processed = genius_parser(item)
             lyrics += f"({processed.strip()})"
+        elif item.name == "b":
+            processed = genius_parser(item)
+            lyrics += f" {processed.strip()} "
         elif item.name == "br":
             if num_consecutive_breaks < 2:
                 lyrics += "\n"
