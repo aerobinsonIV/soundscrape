@@ -89,6 +89,9 @@ class BasicTests(TestCase):
     def test_annotation_same_line(self):
         basic_test(self, "annotation_same_line")
 
+    def test_annotation_same_line_followed_by_punctuation(self):
+        basic_test(self, "annotation_same_line_followed_by_punctuation")
+
     def test_annotation_break_outside_break(self):
         basic_test(self, "annotation_break_outside_break")
 

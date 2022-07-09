@@ -1,4 +1,5 @@
 import os
+from string import punctuation
 import sys
 from bs4 import BeautifulSoup
 from bs4 import Comment
@@ -217,20 +218,26 @@ def genius_parser(input_soup):
     lyrics = re.sub("\( \(", "(", lyrics)
     lyrics = re.sub("\) \)", ")", lyrics)
 
-    lyrics = re.sub("'Cause", "Cause", lyrics)
-    lyrics = re.sub("'cause", "cause", lyrics)
+    # Adding spaces after annotations could result in a space between text and a punctuation mark.
+    # Since there's no legitimate reason for a space there, we can just fix it with a substitution.
+    punctuations = [",", ".", "!", "?", ":", ";", "/", "\\", "%", "}",]
+    for punctuation in punctuations:
+        lyrics = lyrics.replace(f" {punctuation}", punctuation)
 
-    lyrics = re.sub("I'mma", "Imma", lyrics)
-    lyrics = re.sub("i'mma", "imma", lyrics)
+    lyrics = lyrics.replace("{ ", "{") # super edge case this will probably never happen
+   
+    lyrics = lyrics.replace("'Cause", "Cause")
 
-    lyrics = re.sub("I'ma", "Imma", lyrics)
-    lyrics = re.sub("i'ma", "imma", lyrics)
+    lyrics = lyrics.replace("I'mma", "Imma")
+    lyrics = lyrics.replace("i'mma", "imma")
 
-    lyrics = re.sub("’", "'", lyrics)
-    lyrics = re.sub("‘", "'", lyrics)
+    lyrics = lyrics.replace("I'ma", "Imma")
+    lyrics = lyrics.replace("i'ma", "imma")
 
-    lyrics = re.sub("“", '"', lyrics)
-    lyrics = re.sub("”", '"', lyrics)
+    lyrics = lyrics.replace("’", "'")
+    lyrics = lyrics.replace("‘", "'")
+    lyrics = lyrics.replace("“", '"')
+    lyrics = lyrics.replace("”", '"')
 
     return lyrics
 
