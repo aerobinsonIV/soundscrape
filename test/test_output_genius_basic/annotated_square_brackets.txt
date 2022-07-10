@@ -1,4 +1,3 @@
 These are the lyrics
 This is an annotation
-
-There should only be one blank line here
+More lyrics

@@ -43,3 +43,6 @@ class BasicTests(TestCase):
 
     def test_cloudfield_artificial(self):
         real_song_test(self, "cloudfield_artificial")
+
+    def test_chase_atlantic_escort(self):
+        real_song_test(self, "chase_atlantic_escort")

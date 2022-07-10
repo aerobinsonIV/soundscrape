@@ -17,8 +17,7 @@ def remove_newlines_test(tester: TestCase, name):
 
     actual_output = remove_newlines(input_html)
     
-    format_output_comparison(actual_output, expected_output)
-    tester.assertEqual(actual_output, expected_output)
+    tester.assertEqual(actual_output, expected_output, format_output_comparison(actual_output, expected_output))
 
 def basic_test(tester: TestCase, name):
     input_html_filename = os.path.join("test/test_html_genius_basic", name + ".html")
@@ -32,8 +31,7 @@ def basic_test(tester: TestCase, name):
 
     actual_output = extract_lyrics_from_html_genius(input_html)
     
-    format_output_comparison(actual_output, expected_output)
-    tester.assertEqual(actual_output, expected_output)
+    tester.assertEqual(actual_output, expected_output, format_output_comparison(actual_output, expected_output))
 
 class RemoveNewlineTests(TestCase):
     def test_remove_newlines_basic(self):
@@ -51,9 +49,6 @@ class BasicTests(TestCase):
     
     def test_start_break(self):
         basic_test(self, "start_break")
-
-    def test_mid_newline(self):
-        basic_test(self, "mid_newline")
     
     def test_mid_break(self):
         basic_test(self, "mid_break")
@@ -63,9 +58,6 @@ class BasicTests(TestCase):
     
     def test_end_break(self):
         basic_test(self, "end_break")
-
-    def test_many_mid_newlines(self):
-        basic_test(self, "many_mid_newlines")
     
     def test_many_mid_breaks(self):
         basic_test(self, "many_mid_breaks")
@@ -103,11 +95,23 @@ class BasicTests(TestCase):
     def test_annotation_mid_breaks(self):
         basic_test(self, "annotation_mid_breaks")
 
-    def test_annotation_mid_newlines(self):
-        basic_test(self, "annotation_mid_newlines")
-
     def test_annotation_mid_mixed(self):
         basic_test(self, "annotation_mid_mixed")
 
     def test_span(self):
         basic_test(self, "span")
+
+    def test_multiple_lines(self):
+        basic_test(self, "multiple_lines")
+    
+    def test_mid_breaks_with_square_brackets(self):
+        basic_test(self, "mid_breaks_with_square_brackets")
+
+    def test_mid_breaks_with_annotated_square_brackets(self):
+        basic_test(self, "mid_breaks_with_annotated_square_brackets")
+
+    def test_dumb_stupid_useless_div_between_lyric_divs(self):
+        basic_test(self, "dumb_stupid_useless_div_between_lyric_divs")
+    
+    def test_annotated_sqaure_brackets(self):
+        basic_test(self, "annotated_square_brackets")

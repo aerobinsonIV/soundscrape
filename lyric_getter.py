@@ -108,6 +108,20 @@ def get_html_genius(artist, title, cache = False):
 
     return lyrics_page_html
 
+def remove_newlines(input_string):
+    # Remove extra backslashes preceding newlines
+    no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", str(input_string)))
+
+    # Remove newlines
+    return re.sub("\n", "", no_leading_slashes_newlines)
+
+def genius_parse_preprocessing(input_string: str):
+    no_newlines = remove_newlines(input_string)
+
+    # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
+    # https://stackoverflow.com/a/14599280
+    return re.sub("[\[].*?[\]]", "", str(no_newlines))
+
 def extract_lyrics_from_html_genius(html):
 
     lyrics_soup = BeautifulSoup(str(html), 'html.parser')
@@ -117,15 +131,7 @@ def extract_lyrics_from_html_genius(html):
     lyrics_divs_preprocessed_str = ""
 
     for div in lyrics_divs:
-        # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
-        # https://stackoverflow.com/a/14599280
-        no_brackets = re.sub("[\[].*?[\]]", "\n", str(div))
-
-        # Remove extra backslashes preceding newlines
-        no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", no_brackets))
-
-        # Remove newlines
-        lyrics_divs_preprocessed_str += re.sub("\n", "", no_leading_slashes_newlines)
+        lyrics_divs_preprocessed_str += genius_parse_preprocessing(div)
     
     soup_list = BeautifulSoup(lyrics_divs_preprocessed_str, 'html.parser').contents
 
@@ -133,35 +139,16 @@ def extract_lyrics_from_html_genius(html):
 
     # Loop through each top-level lyrics div (usually one or a few)
     for soup in soup_list:
-        all_lyrics += genius_parse_helper(soup)
-        all_lyrics += "\n\n" # Divs occur on lyrical sections so put in a blank line for nice spacing
+        all_lyrics += genius_parser(soup)
+        # all_lyrics += "\n\n" # Divs occur on lyrical sections so put in a blank line for nice spacing
 
     all_lyrics = all_lyrics.strip()
-
-    while(all_lyrics[-1] == "\\n"):
-        all_lyrics = all_lyrics[:-1]
-
     return all_lyrics
 
-def remove_newlines(input_string):
-    # Remove extra backslashes preceding newlines
-    no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", input_string))
-
-    # Remove newlines
-    return re.sub("\n", "", no_leading_slashes_newlines)
-
-def genius_parse_helper(input_soup, last_item_break_recurse=False, last_line_break_recurse=False, last_item_anchor_recurse=False):
-    
-    # Edge case
-    if type(input_soup) == NavigableString:
-            return str(input_soup).strip()
-    
+def genius_parser(input_soup):
     contents = input_soup.contents
-    lyrics = ""
-    last_item_break = last_item_break_recurse
-    last_line_break = last_line_break_recurse
-    last_item_anchor = last_item_anchor_recurse
-    last_item_span = False
+    lyrics = "" # This will be stripped out anyway and it makes more consistent functionality for divs that don't begin with <br>
+    num_consecutive_breaks = 0
 
     for i, item in enumerate(contents):
 
@@ -170,93 +157,55 @@ def genius_parse_helper(input_soup, last_item_break_recurse=False, last_line_bre
             # Get inside the anchor, find and recurse into the span (there might be \n, <br>, or other junk to skip)
             for sub_item in item.contents:
                 if sub_item.name == "span":
-                    processed = genius_parse_helper(sub_item, last_item_break, last_line_break, last_item_anchor)
+                    processed = genius_parser(sub_item)
                     break
             
-            if len(processed) == 1:
-                # Probably just a line break, pretend we never saw this
+            if len(processed.strip()) == 0:
+                # If this is a dud, skip resetting break counter
                 continue
 
-            # Trim out extra line break(s) that somehow sneak onto end of every annotated section. Leave the last one.
-            while len(processed) > 1 and processed[-1] == "\n":
-                processed = processed[:-1]
+            if len(lyrics) > 1 and lyrics[-1] != "\n":
+                # This is an inline annotation, throw in a whitespace to compensate for the stripping
+                lyrics += " "
 
-            for line in processed.split("\n"):
-                if len(line) > 1:
-                    lyrics += line + "\n"
-            
-            last_item_break = False
-            last_line_break = False
-            last_item_anchor = True
-            continue
+            lyrics += processed
 
         elif item.name == "i":
-            # Recurse into the italicized section
-            processed = genius_parse_helper(item, last_item_break, last_line_break, last_item_anchor)
-            lines = processed.split("\n")
-
-            # If a lyric section is italicized, it's probably background/reverbed vocals.
-            # Since we can't italicize plaintext, we instead represent this effect by wrapping the lyrics in parens.
-            with_parens = ""
-            for line in lines:
-                # Ignore lines that are already parenthesized and lines that are just newlines
-                if len(line) > 1 and line[0] != "(":
-                    with_parens += f"({line})\n"
-            lyrics += with_parens
+            processed = genius_parser(item)
+            lyrics += f"({processed.strip()})"
         elif item.name == "br":
-
-            if not last_item_anchor: # Skip first line break after an anchor
-                # Put down one line break if two are encountered in a row in the HTML (because the first is just used to terminal lines on the site)
-                # Don't do two consecutive emtpy lines in the output
-                if not last_line_break:
-                    if last_item_break:
-                        lyrics += "\n"
-                        last_line_break = True
-                    else:
-                        last_item_break = True
-                continue
-        elif item.name == "span" or item.name == "div": # Probably an ad or something else we don't care about
-            last_item_span = True
+            if num_consecutive_breaks < 2:
+                lyrics += "\n"
+                num_consecutive_breaks += 1
             continue
-        else:
-            # Disregard single parens, these usually occur before italicized sections which will be parenthesized anyway
-            if str(item) != "(" and str(item) != ")":
-                if str(item) == "\n":
-                    if not last_item_anchor and not last_item_span: # Skip first line break after an anchor or span
-                        if not last_line_break:
-                            if len(lyrics) > 0: # Don't allow a newline to be the first thing in the lyrics
-                                if i < len(contents) - 1 and contents[i + 1].name != "a": # Anchor tags are preceded by invisible newlines, look forward to avoid that situation
-                                    lyrics += "\n"
-                                    last_line_break = True
-                                continue
-                    elif last_item_anchor:
-                        # For skipping the first line break after an anchor, we don't want to reset eiher of the other last_ variables
-                        last_item_anchor = False
-                        continue
-                else:
-                    # Also look for single parens at the start and end of a text line, because the paren could be directly adjacent to an italicized element
-                    if str(item)[-1] == "(":
-                        lyrics += str(item)[:-1] + "\n"
-                    elif str(item)[1] == ")":
-                        lyrics += str(item)[1:] + "\n"
-                    else:
-                        lyrics += str(item).strip() + "\n"
+
+        elif item.name == "span" or item.name == "div": # Probably an ad or something else we don't care about
+            continue
         
-        last_item_break = False
-        last_line_break = False
-        last_item_anchor = False
-        last_item_span = False
+        else:
+            stripped_item = str(item).strip()
+            if len(stripped_item) > 0:
+
+                # If we're adding on to an existing line (e.g. because of an inline annotation followed by non-annotated lyrics), insert whitespace to compensate for stripping
+                if len(lyrics) > 1 and lyrics[-1] != "\n":
+                    lyrics += " "
+                    pass
+
+                lyrics += stripped_item
+            else:
+                continue
     
-    # END LOOP
+        num_consecutive_breaks = 0
 
-    # Trim excess newlines off start and end
-    if len(lyrics) > 0 and lyrics[0] == "\n":
-        lyrics = lyrics[1:]
+    # Post-processing
 
-    while len(lyrics) > 1 and lyrics[-1] == "\n":
-            lyrics = lyrics[:-1]
+    # Sometimes italicized sections are wrapped in parens. Since we parenthesize all italics, that could result in double parens. Remove those.
+    lyrics = re.sub("\(\(", "(", lyrics)
+    lyrics = re.sub("\)\)", ")", lyrics)
 
-    # these irrationally bother me
+    lyrics = re.sub("\( \(", "(", lyrics)
+    lyrics = re.sub("\) \)", ")", lyrics)
+
     lyrics = re.sub("'Cause", "Cause", lyrics)
     lyrics = re.sub("'cause", "cause", lyrics)
 
