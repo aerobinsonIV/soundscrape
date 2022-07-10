@@ -121,3 +121,6 @@ class BasicTests(TestCase):
 
     def test_bold(self):
         basic_test(self, "bold")
+
+    def test_italic_normal_parens_nested(self):
+        basic_test(self, "italic_normal_parens_nested")

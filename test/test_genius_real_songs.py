@@ -46,3 +46,6 @@ class BasicTests(TestCase):
 
     def test_chase_atlantic_escort(self):
         real_song_test(self, "chase_atlantic_escort")
+
+    def test_chase_atlantic_i_never_existed(self):
+        real_song_test(self, "chase_atlantic_i_never_existed")

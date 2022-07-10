@@ -161,6 +161,7 @@ def genius_parser(input_soup):
     contents = input_soup.contents
     lyrics = "" # This will be stripped out anyway and it makes more consistent functionality for divs that don't begin with <br>
     num_consecutive_breaks = 0
+    in_parens = False
 
     for i, item in enumerate(contents):
 
@@ -184,10 +185,15 @@ def genius_parser(input_soup):
 
         elif item.name == "i":
             processed = genius_parser(item)
-            lyrics += f"({processed.strip()})"
+            if in_parens:
+                lyrics += f"{processed.strip()}"
+            else:
+                lyrics += f"({processed.strip()})"
+
         elif item.name == "b":
             processed = genius_parser(item)
             lyrics += f" {processed.strip()} "
+
         elif item.name == "br":
             if num_consecutive_breaks < 2:
                 lyrics += "\n"
@@ -200,6 +206,14 @@ def genius_parser(input_soup):
         else:
             stripped_item = str(item).strip()
             if len(stripped_item) > 0:
+                
+                # Implicitly trusting Genius not to go more than one parens deep to avoid having to do full-blown tokenization or whatever
+                if in_parens:
+                    if ")" in stripped_item and "(" not in stripped_item:
+                        in_parens = False
+                else:
+                    if "(" in stripped_item and ")" not in stripped_item:
+                        in_parens = True
 
                 # If we're adding on to an existing line (e.g. because of an inline annotation followed by non-annotated lyrics), insert whitespace to compensate for stripping
                 if len(lyrics) > 1 and lyrics[-1] != "\n":
@@ -337,5 +351,4 @@ if __name__ == "__main__":
     # Since this script is being run standalone rather than having its functions called by lyric_adder,
     # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
     # If we're debugging parsing.
-    # print(get_lyrics_genius(artist, title, cache=True))
-    print(get_lyrics_genius(artist, title, cache=False))
+    print(get_lyrics_genius(artist, title, cache=True))
