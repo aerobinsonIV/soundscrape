@@ -360,14 +360,31 @@ def get_lyrics_azlyrics(artist, title):
 
     return ""
 
+def clean_title(title):
+
+    # https://medium.com/@georgelgore/using-regex-to-remove-brackets-and-parentheses-from-a-string-3a6067155d74
+
+    no_parens = re.sub("\(.*\)", "", title)
+    no_brackets = re.sub("\[.*\]", "", no_parens)
+    no_ft = no_brackets.split("ft.")[0]
+    no_feat = no_ft.split("feat.")[0]
+    no_Feat = no_feat.split("Feat.")[0]
+
+    return no_Feat.strip()
+
+def clean_artist(artist):
+    no_semicolons = artist.replace(";", "")
+    no_commas = no_semicolons.replace(",", "")
+    return no_commas.strip()
+
 if __name__ == "__main__":
     if(len(sys.argv) < 2):
         print("Please specify artist artist and title.")
         print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
         exit()
 
-    artist = sys.argv[1]
-    title = sys.argv[2]
+    artist = clean_artist(sys.argv[1])
+    title = clean_title(sys.argv[2])
 
     # Since this script is being run standalone rather than having its functions called by lyric_adder,
     # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
