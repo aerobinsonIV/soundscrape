@@ -9,10 +9,13 @@ from metadata_scanner import scan_file
 
 def add_lyrics(song_file, lyrics):
 
+    # Lyrics are probably in utf-8, so encode them into ascii so my hacky stagger hack doesn't flip out
+    ascii_lyrics = lyrics.encode("ascii", "ignore")
+
     # Open tag on song file
     tag = stagger.read_tag(song_file)
     
-    tag['USLT'] = "eng|" + lyrics
+    tag['USLT'] = "eng|" + ascii_lyrics.decode()
     tag.write(song_file)
 
 def notepad(lyrics):
@@ -39,7 +42,7 @@ if __name__ == "__main__":
     # Notepad the lyrics
     # Write lyrics to file
 
-    if(len(sys.argv) < 1):
+    if(len(sys.argv) < 2):
         print("Please specify a file.")
         exit()
 
