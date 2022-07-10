@@ -264,6 +264,10 @@ def genius_parser(input_soup):
 
     lyrics = lyrics.replace("n' ", "ng ")
     lyrics = lyrics.replace("N' ", "NG ")
+    lyrics = lyrics.replace("n'\n", "ng\n")
+    lyrics = lyrics.replace("N'\n", "NG\n")
+    lyrics = lyrics.replace("n')", "ng)")
+    lyrics = lyrics.replace("N')", "NG)")
 
     return lyrics
 
