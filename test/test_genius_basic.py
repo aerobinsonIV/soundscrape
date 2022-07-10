@@ -127,3 +127,6 @@ class BasicTests(TestCase):
 
     def test_inline_parenthesized_italics(self):
         basic_test(self, "inline_parenthesized_italics")
+
+    def test_replace_on_unicode_apostrophe(self):
+        basic_test(self, "replace_on_unicode_apostrophe")

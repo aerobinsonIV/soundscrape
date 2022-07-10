@@ -242,9 +242,6 @@ def genius_parser(input_soup):
         lyrics = lyrics.replace(f" {punctuation}", punctuation)
 
     lyrics = lyrics.replace("{ ", "{") # super edge case this will probably never happen
-   
-    lyrics = lyrics.replace("'Cause", "Cause")
-    lyrics = lyrics.replace("'cause", "cause")
 
     lyrics = lyrics.replace("I'mma", "Imma")
     lyrics = lyrics.replace("i'mma", "imma")
@@ -256,6 +253,9 @@ def genius_parser(input_soup):
     lyrics = lyrics.replace("‘", "'")
     lyrics = lyrics.replace("“", '"')
     lyrics = lyrics.replace("”", '"')
+
+    lyrics = lyrics.replace("'Cause", "Cause")
+    lyrics = lyrics.replace("'cause", "cause")
 
     return lyrics
 
