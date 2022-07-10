@@ -187,6 +187,10 @@ def get_lyrics_azlyrics(artist, title):
         if bold.text == "Song results:":
             song_results_pane = bold.parent.parent
             break
+        
+    if not ('song_results_pane' in locals()):
+        # Couldn't find this song
+        return None
 
     # Find anchor tags
     anchors = song_results_pane.find_all('a')
