@@ -110,8 +110,9 @@ def extract_lyrics_from_html_genius(html):
     # Loop through each top-level lyrics div (usually one or a few)
     for soup in soup_list:
         all_lyrics += genius_parse_helper(soup)
+        all_lyrics += "\n\n" # Divs occur on lyrical sections so put in a blank line for nice spacing
 
-    return all_lyrics
+    return all_lyrics.strip()
 
 def genius_parse_helper(input_soup):
     contents = input_soup.contents
@@ -163,16 +164,17 @@ def genius_parse_helper(input_soup):
                     last_item_break = True
             continue
 
-        elif item.name == "span" or item.name == "div":
-            pass
+        elif item.name == "span" or item.name == "div": # Probably an ad or something else we don't care about
+            continue
         else:
             # Disregard single parens, these usually occur before italicized sections which will be parenthesized anyway
             if str(item) != "(" and str(item) != ")":
                 if str(item) == "\n":
                     if not last_line_break:
-                        lyrics += "\n"
-                        last_line_break = True
-                        continue
+                        if len(lyrics) > 0: # Don't allow a newline to be the first thing in the lyrics
+                            lyrics += "\n"
+                            last_line_break = True
+                    continue
                 else:
                     # Also look for single parens at the start and end of a text line, because the paren could be directly adjacent to an italicized element
                     if str(item)[-1] == "(":
@@ -180,7 +182,7 @@ def genius_parse_helper(input_soup):
                     elif str(item)[1] == ")":
                         lyrics += str(item)[1:] + "\n"
                     else:
-                        lyrics += str(item) + "\n"
+                        lyrics += str(item).strip() + "\n"
         
         last_item_break = False
         last_line_break = False
