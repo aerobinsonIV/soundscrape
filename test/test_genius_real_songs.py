@@ -52,3 +52,6 @@ class RealSongTests(TestCase):
 
     def test_chase_atlantic_obsessive(self):
         real_song_test(self, "chase_atlantic_obsessive")
+
+    def test_essenger_lexi_norton_downfall(self):
+        real_song_test(self, "essenger_lexi_norton_downfall")

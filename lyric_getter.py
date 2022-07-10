@@ -248,6 +248,8 @@ def genius_parser(input_soup):
 
     lyrics = lyrics.replace("{ ", "{") # super edge case this will probably never happen
 
+    lyrics = lyrics.replace(" ", " ")
+
     lyrics = lyrics.replace("’", "'")
     lyrics = lyrics.replace("‘", "'")
     lyrics = lyrics.replace("“", '"')
