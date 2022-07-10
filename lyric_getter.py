@@ -265,6 +265,12 @@ def genius_parser(input_soup):
     lyrics = lyrics.replace("'Tryna", "Tryna")
     lyrics = lyrics.replace("'tryna", "tryna")
 
+    lyrics = lyrics.replace("gon'", "gon")
+    lyrics = lyrics.replace("Gon'", "Gon")
+
+    lyrics = lyrics.replace("ya'", "ya")
+    lyrics = lyrics.replace("Ya'", "Ya")
+
     lyrics = lyrics.replace("n' ", "ng ")
     lyrics = lyrics.replace("N' ", "NG ")
     lyrics = lyrics.replace("n'\n", "ng\n")
