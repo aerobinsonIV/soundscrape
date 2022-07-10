@@ -192,6 +192,22 @@ def genius_parse_helper(input_soup):
     while len(lyrics) > 1 and lyrics[-1] == "\n":
             lyrics = lyrics[:-1]
 
+    # these irrationally bother me
+    lyrics = re.sub("'Cause", "Cause", lyrics)
+    lyrics = re.sub("'cause", "cause", lyrics)
+
+    lyrics = re.sub("I'mma", "Imma", lyrics)
+    lyrics = re.sub("i'mma", "imma", lyrics)
+
+    lyrics = re.sub("I'ma", "Imma", lyrics)
+    lyrics = re.sub("i'ma", "imma", lyrics)
+
+    lyrics = re.sub("’", "'", lyrics)
+    lyrics = re.sub("‘", "'", lyrics)
+
+    lyrics = re.sub("“", '"', lyrics)
+    lyrics = re.sub("”", '"', lyrics)
+
     return lyrics
 
 def get_lyrics_azlyrics(artist, title):
@@ -277,9 +293,9 @@ if __name__ == "__main__":
     # artist = sys.argv[1]
     # title = sys.argv[2]
 
-    # get_html_genius(artist, title, "beauty_in_death.html")
+    # get_html_genius(artist, title, "call_me_back.html")
 
-    with open("beauty_in_death.html", 'r', encoding='utf-8') as f:
+    with open("call_me_back.html", 'r', encoding='utf-8') as f:
         # extract_lyrics_from_html_genius(f.read())
         print(extract_lyrics_from_html_genius(f.read()))
 
