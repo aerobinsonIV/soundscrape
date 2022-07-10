@@ -1,0 +1,3 @@
+[submodule "stagger"]
+	path = stagger
+	url = git@github.com:aerobinsonIV/stagger.git

@@ -120,6 +120,8 @@ venv.bak/
 # mkdocs documentation
 /site
 
+cached_html/
+
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -130,3 +132,11 @@ dmypy.json
 
 # Music files
 *.mp3
+
+# temp folder 
+temp/
+
+# vscode
+.vscode/
+
+test/actual_output_genius

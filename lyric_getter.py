@@ -1,14 +1,19 @@
+import os
+from string import punctuation
 import sys
 from bs4 import BeautifulSoup
 from bs4 import Comment
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 import time
-import re
-
+import re #regex 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
 from soup_url import soup_url
+
+LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
 
 def match_confidence(real_title, real_artist, test_title, test_artist):
     title_ratio = fuzz.ratio(real_title, test_title)
@@ -23,22 +28,47 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
 
     return artist_ratio + title_ratio
 
-def get_lyrics_genius(artist, title):
-    
+def search_term_preprocessing(input_string):
+    return input_string.replace("&", "%26")
+
+def get_html_genius(artist, title, cache = False):
     # Make input case insensitive
     artist = artist.lower()
     title = title.lower()
 
-    search_soup = soup_url(f'https://genius.com/search?q={artist}+{title}')
+    cache_path = os.path.join(os.getcwd(), "cached_html")
+    cache_filename = re.sub(" ", "_", artist) + "_" + re.sub(" ", "_", title) + "_genius.html"
+    cache_full_path = os.path.join(cache_path, cache_filename)
+    
+    # Does cache dir exist?
+    if os.path.isdir(cache_path):
+
+        # Is the HTML for this particular song cached?
+        if os.path.isfile(cache_full_path):
+            with open(cache_full_path, "r", encoding="utf-8") as f:
+                html = f.read()
+            
+            print(f"Found HTML for {artist} - {title} in cache!")
+            return html
+    else:
+        os.mkdir(cache_path)
+
+    processed_artist = search_term_preprocessing(artist)
+    processed_title = search_term_preprocessing(title)
 
     driver = webdriver.Firefox()
+    
+    ublock_origin_path = "ublock_origin-1.43.0.xpi"
+    driver.install_addon(ublock_origin_path)
+    
+    driver.get(f'https://genius.com/search?q={processed_artist}+{processed_title}')
 
-    driver.get(f'https://genius.com/search?q={artist}+{title}')
-    time.sleep(1)
-
-    # result_labels = driver.find_elements(By.CLASS_NAME, "search_results_label")
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "search-result-section")))
     result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
 
+    wait_for_label = WebDriverWait(driver, 180)
+    wait_for_label.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, "search_results_label")))
     for item in result_sections:
         try:
             result_label = item.find_element(By.CLASS_NAME, "search_results_label")
@@ -78,100 +108,181 @@ def get_lyrics_genius(artist, title):
         # None of the results were even close
         return None
 
-    print(best_url)
-
     # Get lyrics page from link that best matched input title and artist
-    lyrics_soup = soup_url(best_url)
+    lyrics_page_soup = soup_url(best_url)
 
-    # Find div tags
-    lyrics_div = lyrics_soup.find_all(class_='Lyrics__Container-sc-1ynbvzw-6 jYfhrf')[0]
-    
+    lyrics_page_html = str(lyrics_page_soup.prettify())
+
+    # Cache HTML for this song
+    if cache:
+        with open(cache_full_path, "w", encoding="utf-8") as f:
+            f.write(lyrics_page_html)
+
+    return lyrics_page_html
+
+def remove_newlines(input_string):
+    # Remove extra backslashes preceding newlines
+    no_leading_slashes_newlines = re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", str(input_string)))
+
+    # Remove newlines
+    return re.sub("\n", "", no_leading_slashes_newlines)
+
+def genius_parse_preprocessing(input_string: str):
+    no_newlines = remove_newlines(input_string)
+
     # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
     # https://stackoverflow.com/a/14599280
-    lyrics_div_no_brackets = BeautifulSoup(re.sub("[\[].*?[\]]", "\n", str(lyrics_div)), 'html.parser').contents[0]
+    return re.sub("[\[].*?[\]]", "", str(no_newlines))
+
+def extract_lyrics_from_html_genius(html):
+
+    lyrics_soup = BeautifulSoup(str(html), 'html.parser')
+    # Find div tags
+    lyrics_divs = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)
+
+    lyrics_divs_preprocessed_str = ""
+
+    for div in lyrics_divs:
+        lyrics_divs_preprocessed_str += genius_parse_preprocessing(div)
     
-    return genius_parse_helper(lyrics_div_no_brackets)
+    soup_list = BeautifulSoup(lyrics_divs_preprocessed_str, 'html.parser').contents
 
-def genius_parse_helper(input_soup):
+    all_lyrics = ""
+
+    # Loop through each top-level lyrics div (usually one or a few)
+    for soup in soup_list:
+        all_lyrics += genius_parser(soup)
+        # all_lyrics += "\n\n" # Divs occur on lyrical sections so put in a blank line for nice spacing
+
+    all_lyrics = all_lyrics.strip()
+    return all_lyrics
+
+def insert_space_if_inline(lyrics):
+    if len(lyrics) > 1 and lyrics[-1] != "\n":
+        # This is an inline annotation, throw in a whitespace to compensate for the stripping
+        return lyrics + " "
+    
+    return lyrics
+
+def genius_parser(input_soup):
     contents = input_soup.contents
-    lyrics = ""
-    last_item_break = False
-    last_line_break = False
+    lyrics = "" # This will be stripped out anyway and it makes more consistent functionality for divs that don't begin with <br>
+    num_consecutive_breaks = 0
+    in_parens = False
 
-    for item in contents:
+    for i, item in enumerate(contents):
 
         if item.name == "a":
             # This is an annotated section, comprised of a span wrapped in an anchor tag
-            # Get inside the anchor and recurse into the span
-            processed = genius_parse_helper(item.contents[0])
+            # Get inside the anchor, find and recurse into the span (there might be \n, <br>, or other junk to skip)
+            for sub_item in item.contents:
+                if sub_item.name == "span":
+                    processed = genius_parser(sub_item)
+                    break
             
-            if len(processed) == 1:
-                # Probably just a line break, pretend we never saw this
+            if len(processed.strip()) == 0:
+                # If this is a dud, skip resetting break counter
                 continue
-
-            # Trim out extra line break(s) that somehow sneak onto end of every annotated section. Leave the last one.
-            while len(processed) > 1 and processed[-1] == "\n":
-                processed = processed[:-1]
-
-            for line in processed.split("\n"):
-                if len(line) > 1:
-                    lyrics += line + "\n"
             
+            lyrics = insert_space_if_inline(lyrics)
+            lyrics += processed
+
         elif item.name == "i":
-            # Recurse into the italicized section
-            processed = genius_parse_helper(item)
-            lines = processed.split("\n")
+            processed = genius_parser(item)
+            if in_parens:
+                # insert_space_if_inline(lyrics)
+                lyrics += f"{processed.strip()}"
+            else:
+                lyrics = insert_space_if_inline(lyrics)
+                lyrics += f"({processed.strip()})"
 
-            # If a lyric section is italicized, it's probably background/reverbed vocals.
-            # Since we can't italicize plaintext, we instead represent this effect by wrapping the lyrics in parens.
-            with_parens = ""
-            for line in lines:
-                # Ignore lines that are already parenthesized and lines that are just newlines
-                if len(line) > 1 and line[0] != "(":
-                    with_parens += f"({line})\n"
-            lyrics += with_parens
+        elif item.name == "b":
+            processed = genius_parser(item)
+
+            lyrics = insert_space_if_inline(lyrics)
+            lyrics += f"{processed.strip()}"
+
         elif item.name == "br":
-
-            # Put down one line break if two are encountered in a row in the HTML (because the first is just used to terminal lines on the site)
-            # Don't do two consecutive emtpy lines in the output
-            if not last_line_break:
-                if last_item_break:
-                    lyrics += "\n"
-                    last_line_break = True
-                else:
-                    last_item_break = True
+            if num_consecutive_breaks < 2:
+                lyrics += "\n"
+                num_consecutive_breaks += 1
             continue
 
-        elif item.name == "span" or item.name == "div":
-            pass
-        else:
-            # Disregard single parens, these usually occur before italicized sections which will be parenthesized anyway
-            if str(item) != "(" and str(item) != ")":
-                if str(item) == "\n":
-                    if not last_line_break:
-                        lyrics += "\n"
-                        last_line_break = True
-                        continue
-                else:
-                    # Also look for single parens at the start and end of a text line, because the paren could be directly adjacent to an italicized element
-                    if str(item)[-1] == "(":
-                        lyrics += str(item)[:-1] + "\n"
-                    elif str(item)[1] == ")":
-                        lyrics += str(item)[1:] + "\n"
-                    else:
-                        lyrics += str(item) + "\n"
+        elif item.name == "span" or item.name == "div": # Probably an ad or something else we don't care about
+            continue
         
-        last_item_break = False
-        last_line_break = False
-    
-    # Trim excess newlines off start and end
-    if lyrics[0] == "\n":
-        lyrics = lyrics[1:]
+        else:
+            stripped_item = str(item).strip()
+            if len(stripped_item) > 0:
+                
+                # Implicitly trusting Genius not to go more than one parens deep to avoid having to do full-blown tokenization or whatever
+                if in_parens:
+                    if ")" in stripped_item and "(" not in stripped_item:
+                        in_parens = False
+                else:
+                    if "(" in stripped_item and ")" not in stripped_item:
+                        in_parens = True
 
-    while len(lyrics) > 1 and lyrics[-1] == "\n":
-            lyrics = lyrics[:-1]
+                # If we're adding on to an existing line (e.g. because of an inline annotation followed by non-annotated lyrics), insert whitespace to compensate for stripping
+                if len(lyrics) > 1 and lyrics[-1] != "\n":
+                    lyrics += " "
+                    pass
+
+                lyrics += stripped_item
+            else:
+                continue
+    
+        num_consecutive_breaks = 0
+
+    # Post-processing
+
+    # Sometimes italicized sections are wrapped in parens. Since we parenthesize all italics, that could result in double parens. Remove those.
+    lyrics = lyrics.replace("((", "(")
+    lyrics = lyrics.replace("))", ")")
+
+    # Adding spaces after annotations could result in a space between text and a punctuation mark.
+    # Since there's no legitimate reason for a space there, we can just fix it with a substitution.
+    punctuations = [",", ".", "!", "?", ":", ";", "/", "\\", "%", "}", ")"]
+    for punctuation in punctuations:
+        lyrics = lyrics.replace(f" {punctuation}", punctuation)
+
+    lyrics = lyrics.replace("{ ", "{") # super edge case this will probably never happen
+
+    lyrics = lyrics.replace("I'mma", "Imma")
+    lyrics = lyrics.replace("i'mma", "imma")
+
+    lyrics = lyrics.replace("I'ma", "Imma")
+    lyrics = lyrics.replace("i'ma", "imma")
+
+    lyrics = lyrics.replace("’", "'")
+    lyrics = lyrics.replace("‘", "'")
+    lyrics = lyrics.replace("“", '"')
+    lyrics = lyrics.replace("”", '"')
+
+    lyrics = lyrics.replace("'Cause", "Cause")
+    lyrics = lyrics.replace("'cause", "cause")
+
+    lyrics = lyrics.replace("'Tryna", "Tryna")
+    lyrics = lyrics.replace("'tryna", "tryna")
+
+    lyrics = lyrics.replace("gon'", "gon")
+    lyrics = lyrics.replace("Gon'", "Gon")
+
+    lyrics = lyrics.replace("ya'", "ya")
+    lyrics = lyrics.replace("Ya'", "Ya")
+
+    lyrics = lyrics.replace("n' ", "ng ")
+    lyrics = lyrics.replace("N' ", "NG ")
+    lyrics = lyrics.replace("n'\n", "ng\n")
+    lyrics = lyrics.replace("N'\n", "NG\n")
+    lyrics = lyrics.replace("n')", "ng)")
+    lyrics = lyrics.replace("N')", "NG)")
 
     return lyrics
+
+def get_lyrics_genius(artist, title, cache=False):
+    html = get_html_genius(artist, title, cache)
+    return extract_lyrics_from_html_genius(html)
 
 def get_lyrics_azlyrics(artist, title):
 
@@ -185,6 +296,10 @@ def get_lyrics_azlyrics(artist, title):
         if bold.text == "Song results:":
             song_results_pane = bold.parent.parent
             break
+        
+    if not ('song_results_pane' in locals()):
+        # Couldn't find this song
+        return None
 
     # Find anchor tags
     anchors = song_results_pane.find_all('a')
@@ -214,6 +329,8 @@ def get_lyrics_azlyrics(artist, title):
     if best_confidence == 0:
         # None of the results were even close
         return None
+
+    print(best_url)
 
     # Get lyrics page from link that best matched input title and artist
     lyrics_soup = soup_url(best_url)
@@ -252,4 +369,7 @@ if __name__ == "__main__":
     artist = sys.argv[1]
     title = sys.argv[2]
 
-    print(get_lyrics_azlyrics(artist, title))
+    # Since this script is being run standalone rather than having its functions called by lyric_adder,
+    # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
+    # If we're debugging parsing.
+    print(get_lyrics_genius(artist, title, cache=True))

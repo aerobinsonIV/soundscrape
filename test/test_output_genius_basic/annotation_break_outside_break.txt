@@ -1,0 +1,4 @@
+These are the lyrics
+This is an annotation
+
+This should be one line below the annotation with one blank line
