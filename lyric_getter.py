@@ -259,6 +259,12 @@ def genius_parser(input_soup):
     lyrics = lyrics.replace("'Cause", "Cause")
     lyrics = lyrics.replace("'cause", "cause")
 
+    lyrics = lyrics.replace("'Tryna", "Tryna")
+    lyrics = lyrics.replace("'tryna", "tryna")
+
+    lyrics = lyrics.replace("n' ", "ng ")
+    lyrics = lyrics.replace("N' ", "NG ")
+
     return lyrics
 
 def get_lyrics_genius(artist, title, cache=False):
