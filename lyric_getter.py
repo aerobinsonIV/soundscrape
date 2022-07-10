@@ -114,14 +114,17 @@ def extract_lyrics_from_html_genius(html):
     # Find div tags
     lyrics_divs = lyrics_soup.find_all(class_=LYRICS_CONTAINER_CLASS)
 
-    lyrics_divs_no_brackets_str = ""
+    lyrics_divs_preprocessed_str = ""
 
     for div in lyrics_divs:
         # Remove square bracket sections (e.g. [Verse 1: Mitchel Cave]) by converting to string, applying regex substitution, then converting back to soup
         # https://stackoverflow.com/a/14599280
-        lyrics_divs_no_brackets_str += re.sub("[\[].*?[\]]", "\n", str(div))
+        no_brackets = re.sub("[\[].*?[\]]", "\n", str(div))
+
+        # Remove extra backslashes preceding newlines
+        lyrics_divs_preprocessed_str += re.sub("\\\\+\n", "\n", re.sub("\\\\+n", "\n", no_brackets))
     
-    soup_list = BeautifulSoup(lyrics_divs_no_brackets_str, 'html.parser').contents
+    soup_list = BeautifulSoup(lyrics_divs_preprocessed_str, 'html.parser').contents
 
     all_lyrics = ""
 
@@ -130,7 +133,12 @@ def extract_lyrics_from_html_genius(html):
         all_lyrics += genius_parse_helper(soup)
         all_lyrics += "\n\n" # Divs occur on lyrical sections so put in a blank line for nice spacing
 
-    return all_lyrics.strip()
+    all_lyrics = all_lyrics.strip()
+
+    while(all_lyrics[-1] == "\\n"):
+        all_lyrics = all_lyrics[:-1]
+
+    return all_lyrics
 
 def genius_parse_helper(input_soup, last_item_break_recurse=False, last_line_break_recurse=False, last_item_anchor_recurse=False):
     
