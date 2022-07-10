@@ -248,16 +248,16 @@ def genius_parser(input_soup):
 
     lyrics = lyrics.replace("{ ", "{") # super edge case this will probably never happen
 
+    lyrics = lyrics.replace("’", "'")
+    lyrics = lyrics.replace("‘", "'")
+    lyrics = lyrics.replace("“", '"')
+    lyrics = lyrics.replace("”", '"')
+
     lyrics = lyrics.replace("I'mma", "Imma")
     lyrics = lyrics.replace("i'mma", "imma")
 
     lyrics = lyrics.replace("I'ma", "Imma")
     lyrics = lyrics.replace("i'ma", "imma")
-
-    lyrics = lyrics.replace("’", "'")
-    lyrics = lyrics.replace("‘", "'")
-    lyrics = lyrics.replace("“", '"')
-    lyrics = lyrics.replace("”", '"')
 
     lyrics = lyrics.replace("'Cause", "Cause")
     lyrics = lyrics.replace("'cause", "cause")
