@@ -192,7 +192,12 @@ def genius_parser(input_soup):
 
         elif item.name == "b":
             processed = genius_parser(item)
-            lyrics += f" {processed.strip()} "
+
+            if len(lyrics) > 1 and lyrics[-1] != "\n":
+                # This is an inline annotation, throw in a whitespace to compensate for the stripping
+                lyrics += " "
+
+            lyrics += f"{processed.strip()}"
 
         elif item.name == "br":
             if num_consecutive_breaks < 2:

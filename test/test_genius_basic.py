@@ -130,3 +130,6 @@ class BasicTests(TestCase):
 
     def test_replace_on_unicode_apostrophe(self):
         basic_test(self, "replace_on_unicode_apostrophe")
+    
+    def test_bold_with_space(self):
+        basic_test(self, "bold_with_space")
