@@ -28,7 +28,7 @@ def real_song_test(tester: TestCase, name):
     write_actual_output_file(name, actual_output)
     tester.assertEqual(actual_output, expected_output)
 
-class BasicTests(TestCase):
+class RealSongTests(TestCase):
     def test_chase_atlantic_beauty_in_death(self):
         real_song_test(self, "beauty_in_death")
 

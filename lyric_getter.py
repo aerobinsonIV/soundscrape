@@ -229,11 +229,8 @@ def genius_parser(input_soup):
     # Post-processing
 
     # Sometimes italicized sections are wrapped in parens. Since we parenthesize all italics, that could result in double parens. Remove those.
-    lyrics = re.sub("\(\(", "(", lyrics)
-    lyrics = re.sub("\)\)", ")", lyrics)
-
-    lyrics = re.sub("\( \(", "(", lyrics)
-    lyrics = re.sub("\) \)", ")", lyrics)
+    lyrics = lyrics.replace("((", "(")
+    lyrics = lyrics.replace("))", ")")
 
     # Adding spaces after annotations could result in a space between text and a punctuation mark.
     # Since there's no legitimate reason for a space there, we can just fix it with a substitution.
