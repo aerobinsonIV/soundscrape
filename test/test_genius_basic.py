@@ -124,3 +124,6 @@ class BasicTests(TestCase):
 
     def test_italic_normal_parens_nested(self):
         basic_test(self, "italic_normal_parens_nested")
+
+    def test_inline_parenthesized_italics(self):
+        basic_test(self, "inline_parenthesized_italics")

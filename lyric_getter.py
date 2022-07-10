@@ -237,7 +237,7 @@ def genius_parser(input_soup):
 
     # Adding spaces after annotations could result in a space between text and a punctuation mark.
     # Since there's no legitimate reason for a space there, we can just fix it with a substitution.
-    punctuations = [",", ".", "!", "?", ":", ";", "/", "\\", "%", "}",]
+    punctuations = [",", ".", "!", "?", ":", ";", "/", "\\", "%", "}", ")"]
     for punctuation in punctuations:
         lyrics = lyrics.replace(f" {punctuation}", punctuation)
 
