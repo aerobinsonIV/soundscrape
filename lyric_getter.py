@@ -157,6 +157,13 @@ def extract_lyrics_from_html_genius(html):
     all_lyrics = all_lyrics.strip()
     return all_lyrics
 
+def insert_space_if_inline(lyrics):
+    if len(lyrics) > 1 and lyrics[-1] != "\n":
+        # This is an inline annotation, throw in a whitespace to compensate for the stripping
+        return lyrics + " "
+    
+    return lyrics
+
 def genius_parser(input_soup):
     contents = input_soup.contents
     lyrics = "" # This will be stripped out anyway and it makes more consistent functionality for divs that don't begin with <br>
@@ -176,27 +183,23 @@ def genius_parser(input_soup):
             if len(processed.strip()) == 0:
                 # If this is a dud, skip resetting break counter
                 continue
-
-            if len(lyrics) > 1 and lyrics[-1] != "\n":
-                # This is an inline annotation, throw in a whitespace to compensate for the stripping
-                lyrics += " "
-
+            
+            lyrics = insert_space_if_inline(lyrics)
             lyrics += processed
 
         elif item.name == "i":
             processed = genius_parser(item)
             if in_parens:
+                # insert_space_if_inline(lyrics)
                 lyrics += f"{processed.strip()}"
             else:
+                lyrics = insert_space_if_inline(lyrics)
                 lyrics += f"({processed.strip()})"
 
         elif item.name == "b":
             processed = genius_parser(item)
 
-            if len(lyrics) > 1 and lyrics[-1] != "\n":
-                # This is an inline annotation, throw in a whitespace to compensate for the stripping
-                lyrics += " "
-
+            lyrics = insert_space_if_inline(lyrics)
             lyrics += f"{processed.strip()}"
 
         elif item.name == "br":

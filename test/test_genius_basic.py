@@ -71,7 +71,7 @@ class BasicTests(TestCase):
     def test_italic_parens(self):
         basic_test(self, "italic_parens")
 
-    def test_square_brackets(self):
+    def test_italic_parens_inverted(self):
         basic_test(self, "italic_parens_inverted")
 
     def test_square_brackets(self):
@@ -127,6 +127,9 @@ class BasicTests(TestCase):
 
     def test_inline_parenthesized_italics(self):
         basic_test(self, "inline_parenthesized_italics")
+
+    def test_inline_parenthesized_italics_inverted(self):
+        basic_test(self, "inline_parenthesized_italics_inverted")
 
     def test_replace_on_unicode_apostrophe(self):
         basic_test(self, "replace_on_unicode_apostrophe")
