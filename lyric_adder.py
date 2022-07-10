@@ -36,12 +36,6 @@ def notepad(lyrics):
     return(edited_lyrics)
 
 if __name__ == "__main__":
-    # Check args
-    # Open file/scan metadata
-    # Get lyrics for that artist/title
-    # Notepad the lyrics
-    # Write lyrics to file
-
     if(len(sys.argv) < 2):
         print("Please specify a file.")
         exit()
@@ -52,7 +46,5 @@ if __name__ == "__main__":
     lyrics = get_lyrics_genius(scanned_artist, scanned_title)
 
     edited_lyrics = notepad(lyrics)
-
-    print(f"Edited lyrics: {edited_lyrics}")
 
     add_lyrics(filename, edited_lyrics)
