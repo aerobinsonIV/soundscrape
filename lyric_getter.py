@@ -1,17 +1,16 @@
 import os
 import sys
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 from bs4 import Comment
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
-import re
-
-LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
-
+import re #regex 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
 from soup_url import soup_url
+
+LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
 
 def match_confidence(real_title, real_artist, test_title, test_artist):
     title_ratio = fuzz.ratio(real_title, test_title)
@@ -133,18 +132,28 @@ def extract_lyrics_from_html_genius(html):
 
     return all_lyrics.strip()
 
-def genius_parse_helper(input_soup):
+def genius_parse_helper(input_soup, last_item_break_recurse=False, last_line_break_recurse=False, last_item_anchor_recurse=False):
+    
+    # Edge case
+    if type(input_soup) == NavigableString:
+            return str(input_soup).strip()
+    
     contents = input_soup.contents
     lyrics = ""
-    last_item_break = False
-    last_line_break = False
+    last_item_break = last_item_break_recurse
+    last_line_break = last_line_break_recurse
+    last_item_anchor = last_item_anchor_recurse
+    last_item_span = False
 
-    for item in contents:
+    for i, item in enumerate(contents):
 
         if item.name == "a":
             # This is an annotated section, comprised of a span wrapped in an anchor tag
-            # Get inside the anchor and recurse into the span
-            processed = genius_parse_helper(item.contents[0])
+            # Get inside the anchor, find and recurse into the span (there might be \n, <br>, or other junk to skip)
+            for sub_item in item.contents:
+                if sub_item.name == "span":
+                    processed = genius_parse_helper(sub_item, last_item_break, last_line_break, last_item_anchor)
+                    break
             
             if len(processed) == 1:
                 # Probably just a line break, pretend we never saw this
@@ -158,9 +167,14 @@ def genius_parse_helper(input_soup):
                 if len(line) > 1:
                     lyrics += line + "\n"
             
+            last_item_break = False
+            last_line_break = False
+            last_item_anchor = True
+            continue
+
         elif item.name == "i":
             # Recurse into the italicized section
-            processed = genius_parse_helper(item)
+            processed = genius_parse_helper(item, last_item_break, last_line_break, last_item_anchor)
             lines = processed.split("\n")
 
             # If a lyric section is italicized, it's probably background/reverbed vocals.
@@ -173,27 +187,34 @@ def genius_parse_helper(input_soup):
             lyrics += with_parens
         elif item.name == "br":
 
-            # Put down one line break if two are encountered in a row in the HTML (because the first is just used to terminal lines on the site)
-            # Don't do two consecutive emtpy lines in the output
-            if not last_line_break:
-                if last_item_break:
-                    lyrics += "\n"
-                    last_line_break = True
-                else:
-                    last_item_break = True
-            continue
-
+            if not last_item_anchor: # Skip first line break after an anchor
+                # Put down one line break if two are encountered in a row in the HTML (because the first is just used to terminal lines on the site)
+                # Don't do two consecutive emtpy lines in the output
+                if not last_line_break:
+                    if last_item_break:
+                        lyrics += "\n"
+                        last_line_break = True
+                    else:
+                        last_item_break = True
+                continue
         elif item.name == "span" or item.name == "div": # Probably an ad or something else we don't care about
+            last_item_span = True
             continue
         else:
             # Disregard single parens, these usually occur before italicized sections which will be parenthesized anyway
             if str(item) != "(" and str(item) != ")":
                 if str(item) == "\n":
-                    if not last_line_break:
-                        if len(lyrics) > 0: # Don't allow a newline to be the first thing in the lyrics
-                            lyrics += "\n"
-                            last_line_break = True
-                    continue
+                    if not last_item_anchor and not last_item_span: # Skip first line break after an anchor or span
+                        if not last_line_break:
+                            if len(lyrics) > 0: # Don't allow a newline to be the first thing in the lyrics
+                                if i < len(contents) - 1 and contents[i + 1].name != "a": # Anchor tags are preceded by invisible newlines, look forward to avoid that situation
+                                    lyrics += "\n"
+                                    last_line_break = True
+                                continue
+                    elif last_item_anchor:
+                        # For skipping the first line break after an anchor, we don't want to reset eiher of the other last_ variables
+                        last_item_anchor = False
+                        continue
                 else:
                     # Also look for single parens at the start and end of a text line, because the paren could be directly adjacent to an italicized element
                     if str(item)[-1] == "(":
@@ -205,9 +226,13 @@ def genius_parse_helper(input_soup):
         
         last_item_break = False
         last_line_break = False
+        last_item_anchor = False
+        last_item_span = False
     
+    # END LOOP
+
     # Trim excess newlines off start and end
-    if lyrics[0] == "\n":
+    if len(lyrics) > 0 and lyrics[0] == "\n":
         lyrics = lyrics[1:]
 
     while len(lyrics) > 1 and lyrics[-1] == "\n":
