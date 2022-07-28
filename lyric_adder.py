@@ -1,7 +1,7 @@
 import os
 import sys
 
-from lyric_getter import get_lyrics_genius
+from lyric_getter import clean_artist, clean_title, get_lyrics_genius
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
@@ -76,13 +76,15 @@ if __name__ == "__main__":
     for filename in filenames:
 
         scanned_title, scanned_artist = scan_file(filename)
+        cleaned_title = clean_title(scanned_title)
+        cleaned_artist = clean_artist(scanned_artist)
 
         # If one song fails, just ignore it and keep going
         try:
             
-            lyrics = get_lyrics_genius(scanned_artist, scanned_title)
+            lyrics = get_lyrics_genius(cleaned_artist, cleaned_title)
 
-            edited_lyrics = notepad(scanned_artist, scanned_title, lyrics)
+            edited_lyrics = notepad(cleaned_artist, cleaned_title, lyrics)
 
             add_lyrics(filename, edited_lyrics)
         except:
