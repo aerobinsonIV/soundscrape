@@ -23,7 +23,12 @@ def motion(event):
     x, y = event.x, event.y
     widget = event.widget
 
-    print(widget._name)
+    try:
+        image_index = int(widget._name)
+        print(image_index)
+    except:
+        print("Not hovering an image")
+        pass
 
     print(f'{x}, {y}')
 
