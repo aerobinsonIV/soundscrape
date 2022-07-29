@@ -9,18 +9,20 @@ root = Tk()
 frm = ttk.Frame(root, padding=60)
 frm.grid()
 
-image1_pil = Image.open("D:\\soundscrape\\temp_artwork\\2.jpg")
+images_tk = []
+for i in range(1, 6):
+    image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg")
+    image_pil = image_pil.resize((200, 200))
 
+    images_tk.append(ImageTk.PhotoImage(image_pil))
 
-image1_pil = image1_pil.resize((200, 200))
+    ttk.Button(frm, image=images_tk[-1], command=root.destroy).grid(column=i, row=0)
 
-image1 = ImageTk.PhotoImage(image1_pil)
-# Paste into ImageTk.PhotoImage
-# https://pillow.readthedocs.io/en/stable/reference/ImageTk.html?highlight=imagetk
-# image1.resize((50, 50))
+def motion(event):
+    x, y = event.x, event.y
+    print(f'{x}, {y}')
 
-ttk.Label(frm, text="Hello World!").grid(column=0, row=0)
-ttk.Button(frm, text="Quit", image=image1, command=root.destroy).grid(column=1, row=0)
+root.bind('<Motion>', motion)
 root.mainloop()
 
 # # List is a list of file paths to images
