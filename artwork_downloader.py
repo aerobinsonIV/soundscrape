@@ -9,10 +9,10 @@ root = Tk()
 frm = ttk.Frame(root, padding=60)
 frm.grid()
 
-with Image.open("D:\\soundscrape\\temp_artwork\\2.jpg") as im:
-    image1_pil = im
+image1_pil = Image.open("D:\\soundscrape\\temp_artwork\\2.jpg")
 
-image1_pil = image1_pil.resize((50, 50))
+
+image1_pil = image1_pil.resize((200, 200))
 
 image1 = ImageTk.PhotoImage(image1_pil)
 # Paste into ImageTk.PhotoImage
