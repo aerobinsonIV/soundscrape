@@ -10,16 +10,21 @@ frm = ttk.Frame(root, padding=60)
 frm.grid()
 
 images_tk = []
+image_buttons = []
 for i in range(1, 6):
     image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg")
     image_pil = image_pil.resize((200, 200))
 
     images_tk.append(ImageTk.PhotoImage(image_pil))
 
-    ttk.Button(frm, image=images_tk[-1], command=root.destroy).grid(column=i, row=0)
+    image_buttons.append(ttk.Button(frm, name=str(i), image=images_tk[-1], command=root.destroy).grid(column=i, row=0))
 
 def motion(event):
     x, y = event.x, event.y
+    widget = event.widget
+
+    print(widget._name)
+
     print(f'{x}, {y}')
 
 root.bind('<Motion>', motion)
