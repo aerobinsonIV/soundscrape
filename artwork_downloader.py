@@ -17,6 +17,7 @@ big_image = ImageTk.PhotoImage(image_pil)
 ttk.Button(root, name="big", image=big_image, command=root.destroy).grid(column=0, row=0, columnspan=NUM_THUMBNAILS + 1)
 
 # Load all thumnbail images
+# TODO: Ensure these are all square, do centered cropping if they aren't
 images_pil = []
 for i in range(1, NUM_THUMBNAILS + 1):
     images_pil.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
@@ -53,6 +54,17 @@ def motion(event):
             image_index = -1
 
     print(f'{x}, {y} on {image_index}')
+
+    if image_index != -1:
+        # TODO: Is there a way to do this mapping using pillow?
+        original_image = images_pil[image_index]
+        original_image_size = original_image.width
+        coord_multiplier = original_image_size / THUMBNAIL_SIZE
+
+        mapped_x = x * coord_multiplier
+        mapped_y = y * coord_multiplier
+
+        print(f"Original image has size {original_image_size}, mapped coords are {mapped_x}, {mapped_y}")
 
 root.bind('<Motion>', motion)
 root.mainloop()
