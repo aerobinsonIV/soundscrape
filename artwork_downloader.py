@@ -1,23 +1,24 @@
-from email.mime import image
-from typing import List
 from tkinter import *
 from tkinter import ttk
 from PIL import Image, ImageTk
 
 
 root = Tk()
-frm = ttk.Frame(root, padding=60)
-frm.grid()
+
+image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\2.jpg")
+image_pil = image_pil.resize((1040, 600))
+
+big_image = ImageTk.PhotoImage(image_pil)
+ttk.Button(root, name="big", image=big_image, command=root.destroy).grid(column=0, row=0, columnspan=6)
 
 images_tk = []
-image_buttons = []
 for i in range(1, 6):
     image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg")
     image_pil = image_pil.resize((200, 200))
 
     images_tk.append(ImageTk.PhotoImage(image_pil))
 
-    image_buttons.append(ttk.Button(frm, name=str(i), image=images_tk[-1], command=root.destroy).grid(column=i, row=0))
+    ttk.Button(root, name=str(i), image=images_tk[-1], command=root.destroy).grid(column=i, row=1)
 
 def motion(event):
     x, y = event.x, event.y
@@ -27,7 +28,7 @@ def motion(event):
         image_index = int(widget._name)
         print(image_index)
     except:
-        print("Not hovering an image")
+        print(f"Not hovering an image {widget._name}")
         pass
 
     print(f'{x}, {y}')
