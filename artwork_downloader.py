@@ -3,20 +3,29 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 
 THUMBNAIL_SIZE = 200
+NUM_THUMBNAILS = 5
+ZOOMED_IMAGE_HEIGHT = 600
 
 root = Tk()
 
 image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\2.jpg")
-image_pil = image_pil.resize((1040, 600))
+
+zoomed_image_width = NUM_THUMBNAILS * THUMBNAIL_SIZE + (NUM_THUMBNAILS - 1) * 10
+image_pil = image_pil.resize((zoomed_image_width, ZOOMED_IMAGE_HEIGHT))
 
 big_image = ImageTk.PhotoImage(image_pil)
-ttk.Button(root, name="big", image=big_image, command=root.destroy).grid(column=0, row=0, columnspan=6)
+ttk.Button(root, name="big", image=big_image, command=root.destroy).grid(column=0, row=0, columnspan=NUM_THUMBNAILS + 1)
 
+# Load all thumnbail images
+images_pil = []
+for i in range(1, NUM_THUMBNAILS + 1):
+    images_pil.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
+
+
+# Resize images to thumbnail size, convert to tk, make into button
 images_tk = []
-for i in range(1, 6):
-    image_pil = Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg")
-    image_pil = image_pil.resize((THUMBNAIL_SIZE, THUMBNAIL_SIZE))
-
+for i in range(0, NUM_THUMBNAILS):
+    image_pil = images_pil[i].resize((THUMBNAIL_SIZE, THUMBNAIL_SIZE))
     images_tk.append(ImageTk.PhotoImage(image_pil))
 
     ttk.Button(root, name=str(i), image=images_tk[-1], command=root.destroy).grid(column=i, row=1)
