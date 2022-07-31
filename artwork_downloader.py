@@ -79,17 +79,32 @@ def motion(event):
         mapped_x = x * coord_multiplier
         mapped_y = y * coord_multiplier
 
-        left = mapped_x - math.floor(zoom_box_width / 2)
-        top = mapped_y - math.floor(ZOOM_BOX_HEIGHT / 2)
-        
         # TODO: use this as an excuse to learn those weird question mark oneliners because the goal is to become a snobby code elitist
-        if left < 0:
-            left = 0
-        if top < 0:
-            top = 0
+        if mapped_x > zoom_box_width / 2:
+            # Calc x based on right edge
+            right = mapped_x + math.ceil(zoom_box_width / 2)
+            if right > original_image_size:
+                right = original_image_size
+            left = right - zoom_box_width
+        else:
+            # Calc x based on left edge
+            left = mapped_x - math.floor(zoom_box_width / 2)
+            if left < 0:
+                left = 0
+            right = left + zoom_box_width
 
-        right = left + zoom_box_width
-        bottom = top + ZOOM_BOX_HEIGHT
+        if mapped_y > zoom_box_width / 2:
+            # Calc y based on bottom edge
+            bottom = mapped_y + math.ceil(ZOOM_BOX_HEIGHT / 2)
+            if bottom > original_image_size:
+                bottom = original_image_size
+            top = bottom - ZOOM_BOX_HEIGHT
+        else:
+            # Calc y based on top edge
+            top = mapped_y - math.floor(ZOOM_BOX_HEIGHT / 2)
+            if top < 0:
+                top = 0
+            bottom = top + ZOOM_BOX_HEIGHT
 
         box_tuple = (left, top, right, bottom)
         zoom_box_image = original_image.crop(box_tuple)
