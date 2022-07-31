@@ -41,12 +41,14 @@ for i in range(NUM_THUMBNAILS):
 # If any of the original images are smaller than the width of the zoomed area, scale them up
 images_pil_resized = []
 for i in range(NUM_THUMBNAILS): 
-    if images_pil[i].width < zoom_box_width:
-        width = images_pil[i].width
+    width = images_pil[i].width
+    if width < zoom_box_width:
         size_multiplier = math.floor(zoom_box_width / width) + 1
-        images_pil_resized.append(images_pil[i].resize((width * size_multiplier, width * size_multiplier), resample=Image.Resampling.NEAREST))
     else:
-        images_pil_resized.append(images_pil[i])
+        # Double zoom of even high-res images just so we can get a better look at the details
+        size_multiplier = 2
+    
+    images_pil_resized.append(images_pil[i].resize((width * size_multiplier, width * size_multiplier), resample=Image.Resampling.NEAREST))
 
 def motion(event):
     # Buttons have 5px padding, subtract to get exact coords relative to image
