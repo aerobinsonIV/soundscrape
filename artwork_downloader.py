@@ -16,8 +16,14 @@ zoom_box_width = NUM_THUMBNAILS * THUMBNAIL_SIZE + (NUM_THUMBNAILS - 1) * 10
 image_pil = image_pil.resize((zoom_box_width, ZOOM_BOX_HEIGHT))
 
 zoom_box_image_tk = ImageTk.PhotoImage(image_pil)
+
+# Hack to prevent the zoomed image from getting garbage collected by TCL
+# See https://stackoverflow.com/a/71502573
+anti_garbage_collection_list = []
+anti_garbage_collection_list.append(zoom_box_image_tk)
+
 ttk.Label(root, name="zoom_box", image=zoom_box_image_tk).grid(column=0, row=0, columnspan=NUM_THUMBNAILS + 1)
-zoom_box_button = root.children["zoom_box"]
+zoom_box_label = root.children["zoom_box"]
 
 # Load all thumnbail images
 # TODO: Ensure these are all square, do centered cropping if they aren't
@@ -64,8 +70,6 @@ def motion(event):
         if x > THUMBNAIL_SIZE or y > THUMBNAIL_SIZE:
             image_index = -1
 
-    print(f'{x}, {y} on {image_index}')
-
     if image_index != -1:
         # TODO: Is there a way to do this mapping using pillow?
         original_image = images_pil_resized[image_index]
@@ -89,11 +93,11 @@ def motion(event):
 
         box_tuple = (left, top, right, bottom)
         zoom_box_image = original_image.crop(box_tuple)
-        zoom_box_image.show()
+        
         zoom_box_image_tk = ImageTk.PhotoImage(zoom_box_image)
-        zoom_box_button.configure(image=zoom_box_image_tk)
+        zoom_box_label.configure(image=zoom_box_image_tk)
 
-        print(f"Original image has size {original_image_size}, mapped coords are {mapped_x}, {mapped_y}")
+        anti_garbage_collection_list[0] = zoom_box_image_tk
 
 root.bind('<Motion>', motion)
 root.mainloop()
