@@ -3,6 +3,10 @@ from tkinter import ttk
 from typing import List
 from PIL import Image, ImageTk
 import math
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 
 THUMBNAIL_SIZE = 200
 ZOOM_BOX_HEIGHT = 600
@@ -126,10 +130,33 @@ def choose_image(images: List):
     selector = CoverArtSelector(images)
     return selector.show_selection_window()
 
+def search_cover_artwork_by_image(image):
+
+    IMAGE_BUTTON_CLASS = "tdPRye"
+    UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
+    driver = webdriver.Firefox()
+    
+    ublock_origin_path = "ublock_origin-1.43.0.xpi"
+    driver.install_addon(ublock_origin_path)
+
+    driver.get(f'https://images.google.com')
+    
+    # Click the image button with the camera icon
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, IMAGE_BUTTON_CLASS)))
+    image_button = driver.find_elements(By.CLASS_NAME, IMAGE_BUTTON_CLASS)[0]
+    image_button.click()
+
+    # Click the "Upload an image" tab
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, UPLOAD_IMAGE_TAB_CLASS)))
+    upload_image_tab = driver.find_elements(By.CLASS_NAME, UPLOAD_IMAGE_TAB_CLASS)[0]
+    upload_image_tab.click()
+
 if __name__ == "__main__":
     artwork_images = []
     for i in range(1, 6):
         artwork_images.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
 
-    print(choose_image(artwork_images))
+    search_cover_artwork_by_image(artwork_images[0])
     
