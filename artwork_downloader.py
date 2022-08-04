@@ -137,6 +137,8 @@ def search_cover_artwork_by_image(image):
     UPLOAD_IMAGE_TAB_XPATH =  "/html/body/div[1]/div[3]/div/div[2]/form/div[1]/div/a"
     BROWSE_BUTTON_ID = "awyMjb"
     ALL_SIZES_LINK_XPATH = "/html/body/div[7]/div/div[10]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/span[1]/a"
+    ALL_IMAGE_THUMBNAILS_DIV_CLASS = "islrc"
+    ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
 
     driver = webdriver.Firefox()
     
@@ -169,6 +171,25 @@ def search_cover_artwork_by_image(image):
     images_tab = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
     images_tab.click()
 
+    # Get div that contains thumbnails of all the image results
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, ALL_IMAGE_THUMBNAILS_DIV_CLASS)))
+    thumbnails_div = driver.find_elements(By.CLASS_NAME, ALL_IMAGE_THUMBNAILS_DIV_CLASS)[0]
+    
+    # First element is just a thing that says "Image results", cut it out
+    thumbnails = thumbnails_div.find_elements_by_xpath("./child::*")[1:] 
+
+    image_dimensions = []
+    for thumbnail in thumbnails:
+        width = thumbnail.get_attribute("data-ow")
+        height = thumbnail.get_attribute("data-oh")
+        image_dimensions.append((width, height))
+
+    for pair in image_dimensions:
+        print(pair)
+
+    # TODO: Find top 5 square images with the highest resolutions, download all 5 by clicking their thumbnails and downloading the original image, get all 5 into cover art UI
+        
 if __name__ == "__main__":
     artwork_images = []
     for i in range(1, 6):
