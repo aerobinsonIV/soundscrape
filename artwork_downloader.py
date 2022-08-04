@@ -135,6 +135,7 @@ def search_cover_artwork_by_image(image):
     IMAGE_BUTTON_CLASS = "tdPRye"
     UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
     UPLOAD_IMAGE_TAB_XPATH =  "/html/body/div[1]/div[3]/div/div[2]/form/div[1]/div/a"
+    BROWSE_BUTTON_ID = "awyMjb"
     driver = webdriver.Firefox()
     
     ublock_origin_path = "ublock_origin-1.43.0.xpi"
@@ -153,6 +154,12 @@ def search_cover_artwork_by_image(image):
     wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, UPLOAD_IMAGE_TAB_XPATH)))
     upload_image_tab = driver.find_elements(By.XPATH, UPLOAD_IMAGE_TAB_XPATH)[0]
     upload_image_tab.click()
+
+    # Click the "Browse" button to upload the image
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
+    browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
+    browse_button.send_keys('D:\soundscrape\\temp_artwork\\1.jpg')
 
 if __name__ == "__main__":
     artwork_images = []
