@@ -136,6 +136,8 @@ def search_cover_artwork_by_image(image):
     UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
     UPLOAD_IMAGE_TAB_XPATH =  "/html/body/div[1]/div[3]/div/div[2]/form/div[1]/div/a"
     BROWSE_BUTTON_ID = "awyMjb"
+    ALL_SIZES_LINK_XPATH = "/html/body/div[7]/div/div[10]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/span[1]/a"
+
     driver = webdriver.Firefox()
     
     ublock_origin_path = "ublock_origin-1.43.0.xpi"
@@ -160,6 +162,12 @@ def search_cover_artwork_by_image(image):
     wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
     browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
     browse_button.send_keys('D:\soundscrape\\temp_artwork\\1.jpg')
+
+    # Click the "All sizes" link on the search results page to go to the list of image result thumbnails
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, ALL_SIZES_LINK_XPATH)))
+    images_tab = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
+    images_tab.click()
 
 if __name__ == "__main__":
     artwork_images = []
