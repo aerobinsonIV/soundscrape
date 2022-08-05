@@ -139,6 +139,7 @@ def search_cover_artwork_by_image(image):
     ALL_SIZES_LINK_XPATH = "/html/body/div[7]/div/div[10]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/span[1]/a"
     ALL_IMAGE_THUMBNAILS_DIV_CLASS = "islrc"
     ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
+    EXPANDED_IMAGE_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img"
 
     driver = webdriver.Firefox()
     
@@ -177,7 +178,7 @@ def search_cover_artwork_by_image(image):
     thumbnails_div = driver.find_elements(By.CLASS_NAME, ALL_IMAGE_THUMBNAILS_DIV_CLASS)[0]
     
     # First element is just a thing that says "Image results", cut it out
-    thumbnails = thumbnails_div.find_elements_by_xpath("./child::*")[1:] 
+    thumbnails = thumbnails_div.find_elements(By.XPATH, "./child::*")[1:] 
 
     image_dimensions = []
     for thumbnail in thumbnails:
@@ -185,8 +186,24 @@ def search_cover_artwork_by_image(image):
         height = thumbnail.get_attribute("data-oh")
         image_dimensions.append((width, height))
 
-    for pair in image_dimensions:
-        print(pair)
+    # TODO: This is temporary, I'm going to automate this later to choose 5 images and click each of them
+    cool_thumbnail = thumbnails[8]
+    cool_thumbnail.click()
+
+    # Get expanded image element from clicking thumbnail
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
+    expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
+
+    # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
+    wait_for_full_res_image = WebDriverWait(driver, 180)
+    wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
+    
+    print(expanded_image.get_attribute("src"))
+
+    # expanded_image.click()
+    # for pair in image_dimensions:
+    #     print(pair)
 
     # TODO: Find top 5 square images with the highest resolutions, download all 5 by clicking their thumbnails and downloading the original image, get all 5 into cover art UI
         
