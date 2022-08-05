@@ -7,6 +7,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+import requests
+from io import BytesIO
 
 THUMBNAIL_SIZE = 200
 ZOOM_BOX_HEIGHT = 600
@@ -199,7 +201,11 @@ def search_cover_artwork_by_image(image):
     wait_for_full_res_image = WebDriverWait(driver, 180)
     wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
     
-    print(expanded_image.get_attribute("src"))
+    image_url = expanded_image.get_attribute("src")
+
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content))
+    img.show()
 
     # expanded_image.click()
     # for pair in image_dimensions:
