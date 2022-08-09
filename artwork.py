@@ -227,31 +227,35 @@ def search_cover_artwork_by_image(image: Image.Image):
     # Find 5 highest resolution square thumbnails
     # TODO: Handle situation where there are fewer than 5 thumbnails (Foria - Tide)
     # Selector should be shrunk to be the right size for whatever number of images we do find
-    top_five_resolutions = [0, 0, 0, 0, 0]
-    top_five_thumbnails = [None, None, None, None, None]
-    for thumbnail in thumbnails:
-        width = int(thumbnail.get_attribute("data-ow"))
-        height = int(thumbnail.get_attribute("data-oh"))
-        
-        # Skip images that aren't roughly square, they probably aren't cover artworks or are cropped weirdly
-        if width < (float(height) * 0.95) or width > (float(height) * 1.05):
-            continue
-        
-        # See if this image has better resolution than any we've already found
-        for i, res in enumerate(top_five_resolutions):
-            if width * height > res:
-                # It does, add it to the list
-                top_five_resolutions.insert(i, width * height)
-                top_five_thumbnails.insert(i, thumbnail)
 
-                # Trim off the worst item
-                top_five_resolutions = top_five_resolutions[:-1]
-                top_five_thumbnails = top_five_thumbnails[:-1]
-                break
+    if len(thumbnails) > 5:
+        top_resolutions = [0, 0, 0, 0, 0]
+        top_thumbnails = [None, None, None, None, None]
+        for thumbnail in thumbnails:
+            width = int(thumbnail.get_attribute("data-ow"))
+            height = int(thumbnail.get_attribute("data-oh"))
+            
+            # Skip images that aren't roughly square, they probably aren't cover artworks or are cropped weirdly
+            if width < (float(height) * 0.95) or width > (float(height) * 1.05):
+                continue
+            
+            # See if this image has better resolution than any we've already found
+            for i, res in enumerate(top_resolutions):
+                if width * height > res:
+                    # It does, add it to the list
+                    top_resolutions.insert(i, width * height)
+                    top_thumbnails.insert(i, thumbnail)
+
+                    # Trim off the worst item
+                    top_resolutions = top_resolutions[:-1]
+                    top_thumbnails = top_thumbnails[:-1]
+                    break
+    else:
+        top_thumbnails = thumbnails
     
     full_size_images_pillow = []
     full_size_images_raw = []
-    for thumbnail in top_five_thumbnails:
+    for thumbnail in top_thumbnails:
         thumbnail.click()
 
         # Get expanded image element from clicking thumbnail
@@ -317,5 +321,3 @@ if __name__ == "__main__":
     # # put_image_in_song_file(searched_images_raw[chosen_image_index], "temp_artwork\\rick.mp3")
 
     # generate_thumbnail(searched_images_pillow[0]).show()
-    
-    # and from here on, I save the image, create thumbnails, etc.
