@@ -16,7 +16,6 @@ sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
 
-
 THUMBNAIL_SIZE = 200
 ZOOM_BOX_HEIGHT = 600
 
@@ -200,6 +199,8 @@ def search_cover_artwork_by_image(image: Image.Image):
     thumbnails = thumbnails_div.find_elements(By.XPATH, "./child::*")[1:] 
 
     # Find 5 highest resolution square thumbnails
+    # TODO: Handle situation where there are fewer than 5 thumbnails (Foria - Tide)
+    # Selector should be shrunk to be the right size for whatever number of images we do find
     top_five_resolutions = [0, 0, 0, 0, 0]
     top_five_thumbnails = [None, None, None, None, None]
     for thumbnail in thumbnails:
@@ -233,6 +234,8 @@ def search_cover_artwork_by_image(image: Image.Image):
         expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
 
         # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
+        # TODO: Handle situation where link is broken and full-res image never loads in (Shelter)
+        # Cycle to next best image (which means that all images should be arranged in order of goodness beforehand)
         wait_for_full_res_image = WebDriverWait(driver, 180)
         wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
         
@@ -250,7 +253,7 @@ def search_cover_artwork_by_image(image: Image.Image):
     # Return both the pillow versions and the originals so that once user chooses an image, we can use the raw original image rather than the pillow version.
     return (full_size_images_pillow, full_size_images_raw)
         
-def get_image_from_song_file(filename: str):
+def get_image_from_song_file(filename: str) -> Image.Image:
     tag = stagger.read_tag(filename)
 
     # Extract raw image bytes from metadata

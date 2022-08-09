@@ -1,5 +1,4 @@
 import os
-from string import punctuation
 import sys
 from bs4 import BeautifulSoup
 from bs4 import Comment
@@ -7,11 +6,14 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-import time
 import re #regex 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
 
 from soup_url import soup_url
+
+sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
+import stagger
+from stagger.id3 import *
 
 LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
 
@@ -378,6 +380,53 @@ def clean_artist(artist):
     no_semicolons = artist.replace(";", "")
     no_commas = no_semicolons.replace(",", "")
     return no_commas.strip()
+
+def add_lyrics_to_song_file(song_file, lyrics):
+
+    # Lyrics are probably in utf-8, so encode them into ascii so my hacky stagger hack doesn't flip out
+    ascii_lyrics = lyrics.encode("ascii", "ignore")
+
+    # Open tag on song file
+    tag = stagger.read_tag(song_file)
+    
+    tag['USLT'] = "eng|" + ascii_lyrics.decode()
+    tag.write(song_file)
+
+def gen_filename_helper(input_string):
+    illegal_chars = ["\"", "*", "/", ":", "<", ">", "?", "\\", "|"]
+    processed_string = input_string.strip()
+
+    for char in illegal_chars:
+        processed_string = processed_string.replace(char, "")
+
+    return processed_string.replace(" ", "_").lower()
+
+def generate_lyrics_filename(artist, title):
+
+    cleaned_artist = gen_filename_helper(artist)
+    cleaned_title = gen_filename_helper(title)
+
+    filename = f"{cleaned_artist}_{cleaned_title}.txt"
+
+    return filename
+
+def notepad(artist, title, lyrics):
+
+    lyric_filename = generate_lyrics_filename(artist, title)
+    lyric_file_path = os.path.join(os.path.join(os.getcwd(), "temp"), lyric_filename)
+
+    with open(lyric_file_path, "w", encoding='utf8') as f:
+        f.write(lyrics)
+
+    # move along hackers, nothing to see here
+    os.system(f"notepad \"{lyric_file_path}\"")
+
+    with open(lyric_file_path, "r", encoding='utf8') as f:
+        edited_lyrics = f.read()
+
+    os.remove(lyric_file_path)
+
+    return(edited_lyrics)
 
 if __name__ == "__main__":
     if(len(sys.argv) < 2):

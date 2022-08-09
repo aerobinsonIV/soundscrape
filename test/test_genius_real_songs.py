@@ -1,6 +1,6 @@
 from unittest import TestCase
 import os
-from lyric_getter import extract_lyrics_from_html_genius
+from lyrics import extract_lyrics_from_html_genius
 
 def write_actual_output_file(filename, actual_output):
     # Does cache dir exist?

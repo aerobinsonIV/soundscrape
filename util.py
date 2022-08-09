@@ -4,7 +4,7 @@ sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
 
-def scan_file(filename):
+def get_title_and_artist_from_filename(filename):
     # Open tag on song file
     tag = stagger.read_tag(filename)
 
@@ -19,5 +19,5 @@ if __name__ == "__main__":
         exit()
 
     filename = sys.argv[1]
-    data = scan_file(filename)
+    data = get_title_and_artist_from_filename(filename)
     print(f"This file contains the song {data[0]} by {data[1]}.")
