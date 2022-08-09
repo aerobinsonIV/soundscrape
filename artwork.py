@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from typing import List
-from PIL import Image, ImageTk
+from PIL import Image, ImageDraw, ImageTk
 import math
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -93,6 +93,32 @@ class CoverArtSelector():
         for image in images:
             self.images_pil.append(image)
 
+    def generate_thumbnail(self, image: Image.Image) -> Image.Image:
+
+        orig_width = image.width
+        orig_height = image.height
+        # e.g. "1200 x 1200"
+        res_label_string = str(orig_width) + " x " + str(orig_height)
+
+        resized_image = image.resize((THUMBNAIL_SIZE, THUMBNAIL_SIZE))
+
+        res_label_height = math.floor(THUMBNAIL_SIZE / 20)
+        # Base width of res label on length of resolution text string
+        res_label_width = math.floor(THUMBNAIL_SIZE / 30) * len(res_label_string) + 4
+
+        strip = Image.new('RGB', (res_label_width, res_label_height)) #creating the black strip
+        draw = ImageDraw.Draw(strip)
+        
+        # TODO: Right now, it's just using the default font.
+        # If in the future, THUMBNAIL_SIZE actually has to get bigger, you might want to change the code below to something like this:
+        # font = ImageFont.truetype("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf", 16)
+        # draw.text((0, 0), res_label_string, (255, 255, 255), font=font)
+
+        draw.text((2, 0), res_label_string, (255, 255, 255)) #drawing text on the black strip
+        offset = (0, THUMBNAIL_SIZE - res_label_height)
+        resized_image.paste(strip, offset) #pasting black strip on the base image
+        return resized_image
+
     def show_selection_window(self) -> int:  
         num_thumbnails = len(self.images_pil)
 
@@ -113,7 +139,7 @@ class CoverArtSelector():
         # Create thumbnail buttons
         self.images_tk = []
         for i in range(len(self.images_pil)):
-            image_pil = self.images_pil[i].resize((THUMBNAIL_SIZE, THUMBNAIL_SIZE))
+            image_pil = self.generate_thumbnail(self.images_pil[i])
             self.images_tk.append(ImageTk.PhotoImage(image_pil))
             ttk.Button(self.root, name=str(i), image=self.images_tk[-1], command=self.root.destroy).grid(column=i, row=1)
 
@@ -279,8 +305,17 @@ def put_image_in_song_file(raw_image: bytes, filename: str):
     os.remove(image_path)
 
 if __name__ == "__main__":
-    extracted_artwork = get_image_from_song_file("temp_artwork\\rick.mp3")
-    searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
-    selector = CoverArtSelector(searched_images_pillow)
-    chosen_image_index = selector.show_selection_window()
-    put_image_in_song_file(searched_images_raw[chosen_image_index], "temp_artwork\\rick.mp3")
+    # # extracted_artwork = get_image_from_song_file("temp_artwork\\rick.mp3")
+    # # searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
+
+    searched_images_pillow = []
+    for i in range(1, 6):
+        searched_images_pillow.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
+
+    selector = choose_image(searched_images_pillow)
+    # # chosen_image_index = selector.show_selection_window()
+    # # put_image_in_song_file(searched_images_raw[chosen_image_index], "temp_artwork\\rick.mp3")
+
+    # generate_thumbnail(searched_images_pillow[0]).show()
+    
+    # and from here on, I save the image, create thumbnails, etc.
