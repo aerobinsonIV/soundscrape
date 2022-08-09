@@ -237,9 +237,9 @@ def get_image_from_song_file(filename):
     tag = stagger.read_tag(filename)
 
     image_bytes = tag[APIC][0].data
-
-    with open("temp_artwork\\temp_image", "wb") as f:
-        f.write(image_bytes)
+    image = Image.open(BytesIO(image_bytes))
+    
+    return image
 
 if __name__ == "__main__":
-    get_image_from_song_file("temp_artwork\\rick.mp3")
+    get_image_from_song_file("temp_artwork\\rick.mp3").show()
