@@ -139,7 +139,9 @@ def choose_image(images: List):
     selector = CoverArtSelector(images)
     return selector.show_selection_window()
 
-def search_cover_artwork_by_image(image) -> List[Image.Image]:
+# Returns tuple of (List[Image.Image], List[Bytes]) where both lists are the same length
+# List of bytestrings are the directly downloaded image datas that will be used to create the pillow images
+def search_cover_artwork_by_image(image: Image.Image):
 
     IMAGE_BUTTON_CLASS = "tdPRye"
     UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
@@ -149,6 +151,10 @@ def search_cover_artwork_by_image(image) -> List[Image.Image]:
     ALL_IMAGE_THUMBNAILS_DIV_CLASS = "islrc"
     ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
     EXPANDED_IMAGE_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img"
+
+    # Save given image as a file so we can upload it to google images
+    image_path = os.path.join(os.getcwd(), "temp", "temp_image.jpg")
+    image.save(image_path)
 
     driver = webdriver.Firefox()
     
@@ -173,13 +179,17 @@ def search_cover_artwork_by_image(image) -> List[Image.Image]:
     wait_for_section = WebDriverWait(driver, 180)
     wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
     browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
-    browse_button.send_keys('D:\soundscrape\\temp_artwork\\1.jpg')
+    browse_button.send_keys(image_path)
+    
 
     # Click the "All sizes" link on the search results page to go to the list of image result thumbnails
     wait_for_section = WebDriverWait(driver, 180)
     wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, ALL_SIZES_LINK_XPATH)))
     images_tab = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
     images_tab.click()
+
+    # We're done with the image file, delete it
+    os.remove(image_path)
 
     # Get div that contains thumbnails of all the image results
     wait_for_section = WebDriverWait(driver, 180)
@@ -212,7 +222,8 @@ def search_cover_artwork_by_image(image) -> List[Image.Image]:
                 top_five_thumbnails = top_five_thumbnails[:-1]
                 break
     
-    full_size_images = []
+    full_size_images_pillow = []
+    full_size_images_raw = []
     for thumbnail in top_five_thumbnails:
         thumbnail.click()
 
@@ -228,18 +239,45 @@ def search_cover_artwork_by_image(image) -> List[Image.Image]:
         image_url = expanded_image.get_attribute("src")
 
         response = requests.get(image_url)
-        img = Image.open(BytesIO(response.content))
-        full_size_images.append(img)
+        raw = response.content
+        img = Image.open(BytesIO(raw))
+        full_size_images_pillow.append(img)
+        full_size_images_raw.append(raw)
 
-    return full_size_images
+    driver.close()
+
+    # If the original image was a jpeg, we don't want to re-encode it when we're going from pillow to a file. 
+    # Return both the pillow versions and the originals so that once user chooses an image, we can use the raw original image rather than the pillow version.
+    return (full_size_images_pillow, full_size_images_raw)
         
-def get_image_from_song_file(filename):
+def get_image_from_song_file(filename: str):
     tag = stagger.read_tag(filename)
 
+    # Extract raw image bytes from metadata
     image_bytes = tag[APIC][0].data
+
+    # Create pillow image
     image = Image.open(BytesIO(image_bytes))
     
     return image
 
+def put_image_in_song_file(raw_image: bytes, filename: str):
+    tag = stagger.read_tag(filename)
+    
+    image_path = filename + ".image"
+    
+    # Write image to a file becuase the stagger APIC constructor only takes a file path
+    with open(image_path, "wb") as f:
+        f.write(raw_image)
+
+    tag[APIC] = APIC(image_path)    
+    tag.write()
+
+    os.remove(image_path)
+
 if __name__ == "__main__":
-    get_image_from_song_file("temp_artwork\\rick.mp3").show()
+    extracted_artwork = get_image_from_song_file("temp_artwork\\rick.mp3")
+    searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
+    selector = CoverArtSelector(searched_images_pillow)
+    chosen_image_index = selector.show_selection_window()
+    put_image_in_song_file(searched_images_raw[chosen_image_index], "temp_artwork\\rick.mp3")
