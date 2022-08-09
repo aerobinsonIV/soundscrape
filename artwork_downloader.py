@@ -9,6 +9,13 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 import requests
 from io import BytesIO
+import sys
+import os
+
+sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
+import stagger
+from stagger.id3 import *
+
 
 THUMBNAIL_SIZE = 200
 ZOOM_BOX_HEIGHT = 600
@@ -226,11 +233,13 @@ def search_cover_artwork_by_image(image) -> List[Image.Image]:
 
     return full_size_images
         
-if __name__ == "__main__":
-    artwork_images = []
-    for i in range(1, 6):
-        artwork_images.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
+def get_image_from_song_file(filename):
+    tag = stagger.read_tag(filename)
 
-    images = search_cover_artwork_by_image(artwork_images[0])
-    choose_image(images)
-    
+    image_bytes = tag[APIC][0].data
+
+    with open("temp_artwork\\temp_image", "wb") as f:
+        f.write(image_bytes)
+
+if __name__ == "__main__":
+    get_image_from_song_file("temp_artwork\\rick.mp3")
