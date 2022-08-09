@@ -132,7 +132,7 @@ def choose_image(images: List):
     selector = CoverArtSelector(images)
     return selector.show_selection_window()
 
-def search_cover_artwork_by_image(image):
+def search_cover_artwork_by_image(image) -> List[Image.Image]:
 
     IMAGE_BUTTON_CLASS = "tdPRye"
     UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
@@ -182,41 +182,55 @@ def search_cover_artwork_by_image(image):
     # First element is just a thing that says "Image results", cut it out
     thumbnails = thumbnails_div.find_elements(By.XPATH, "./child::*")[1:] 
 
-    image_dimensions = []
+    # Find 5 highest resolution square thumbnails
+    top_five_resolutions = [0, 0, 0, 0, 0]
+    top_five_thumbnails = [None, None, None, None, None]
     for thumbnail in thumbnails:
-        width = thumbnail.get_attribute("data-ow")
-        height = thumbnail.get_attribute("data-oh")
-        image_dimensions.append((width, height))
+        width = int(thumbnail.get_attribute("data-ow"))
+        height = int(thumbnail.get_attribute("data-oh"))
+        
+        # Skip images that aren't roughly square, they probably aren't cover artworks or are cropped weirdly
+        if width < (float(height) * 0.95) or width > (float(height) * 1.05):
+            continue
+        
+        # See if this image has better resolution than any we've already found
+        for i, res in enumerate(top_five_resolutions):
+            if width * height > res:
+                # It does, add it to the list
+                top_five_resolutions.insert(i, width * height)
+                top_five_thumbnails.insert(i, thumbnail)
 
-    # TODO: This is temporary, I'm going to automate this later to choose 5 images and click each of them
-    cool_thumbnail = thumbnails[8]
-    cool_thumbnail.click()
-
-    # Get expanded image element from clicking thumbnail
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
-    expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
-
-    # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
-    wait_for_full_res_image = WebDriverWait(driver, 180)
-    wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
+                # Trim off the worst item
+                top_five_resolutions = top_five_resolutions[:-1]
+                top_five_thumbnails = top_five_thumbnails[:-1]
+                break
     
-    image_url = expanded_image.get_attribute("src")
+    full_size_images = []
+    for thumbnail in top_five_thumbnails:
+        thumbnail.click()
 
-    response = requests.get(image_url)
-    img = Image.open(BytesIO(response.content))
-    img.show()
+        # Get expanded image element from clicking thumbnail
+        wait_for_section = WebDriverWait(driver, 180)
+        wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
+        expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
 
-    # expanded_image.click()
-    # for pair in image_dimensions:
-    #     print(pair)
+        # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
+        wait_for_full_res_image = WebDriverWait(driver, 180)
+        wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
+        
+        image_url = expanded_image.get_attribute("src")
 
-    # TODO: Find top 5 square images with the highest resolutions, download all 5 by clicking their thumbnails and downloading the original image, get all 5 into cover art UI
+        response = requests.get(image_url)
+        img = Image.open(BytesIO(response.content))
+        full_size_images.append(img)
+
+    return full_size_images
         
 if __name__ == "__main__":
     artwork_images = []
     for i in range(1, 6):
         artwork_images.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
 
-    search_cover_artwork_by_image(artwork_images[0])
+    images = search_cover_artwork_by_image(artwork_images[0])
+    choose_image(images)
     
