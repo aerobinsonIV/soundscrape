@@ -18,6 +18,7 @@ from stagger.id3 import *
 
 THUMBNAIL_SIZE = 200
 ZOOM_BOX_HEIGHT = 600
+MAX_NUM_THUMBNAILS = 5
 
 class CoverArtSelector():
     def motion(self, event):
@@ -177,6 +178,9 @@ def search_cover_artwork_by_image(image: Image.Image):
     ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
     EXPANDED_IMAGE_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img"
 
+    # TODO: Determine this experimentally
+    MAX_GOOGLE_IMAGES_LOAD_RESOLUTION = 3200
+
     # Save given image as a file so we can upload it to google images
     image_path = os.path.join(os.getcwd(), "temp", "temp_image.jpg")
     image.save(image_path)
@@ -224,58 +228,58 @@ def search_cover_artwork_by_image(image: Image.Image):
     # First element is just a thing that says "Image results", cut it out
     thumbnails = thumbnails_div.find_elements(By.XPATH, "./child::*")[1:] 
 
-    # Find 5 highest resolution square thumbnails
-    # TODO: Handle situation where there are fewer than 5 thumbnails (Foria - Tide)
-    # Selector should be shrunk to be the right size for whatever number of images we do find
+    # Sort thumbnails from highest to lowest resolution of the full-size image
+    def full_resolution(thumbnail):
+        width = int(thumbnail.get_attribute("data-ow"))
+        height = int(thumbnail.get_attribute("data-oh"))
+        return width * height
+    thumbnails.sort(key=full_resolution, reverse=True)
 
-    if len(thumbnails) > 5:
-        top_resolutions = [0, 0, 0, 0, 0]
-        top_thumbnails = [None, None, None, None, None]
-        for thumbnail in thumbnails:
-            width = int(thumbnail.get_attribute("data-ow"))
-            height = int(thumbnail.get_attribute("data-oh"))
-            
-            # Skip images that aren't roughly square, they probably aren't cover artworks or are cropped weirdly
-            if width < (float(height) * 0.95) or width > (float(height) * 1.05):
-                continue
-            
-            # See if this image has better resolution than any we've already found
-            for i, res in enumerate(top_resolutions):
-                if width * height > res:
-                    # It does, add it to the list
-                    top_resolutions.insert(i, width * height)
-                    top_thumbnails.insert(i, thumbnail)
+    square_thumbnails = []
+    for thumbnail in thumbnails:
+        width = int(thumbnail.get_attribute("data-ow"))
+        height = int(thumbnail.get_attribute("data-oh"))
 
-                    # Trim off the worst item
-                    top_resolutions = top_resolutions[:-1]
-                    top_thumbnails = top_thumbnails[:-1]
-                    break
-    else:
-        top_thumbnails = thumbnails
-    
+        # Skip images that aren't roughly square, they probably aren't cover artworks or are cropped weirdly
+        if width < (float(height) * 0.95) or height > (float(width) * 1.05):
+            continue
+
+        # If an image is too big, the full-sized image link will never be loaded on the results page.
+        # Since we're not going to navigate to a site and try to figure out how to isolate the image, just skip these super huge images.
+        if width * height > MAX_GOOGLE_IMAGES_LOAD_RESOLUTION ** 2:
+            continue
+
+        square_thumbnails.append(thumbnail)
+
     full_size_images_pillow = []
     full_size_images_raw = []
-    for thumbnail in top_thumbnails:
-        thumbnail.click()
+    for thumbnail in square_thumbnails:
+        try:
+            thumbnail.click()
 
-        # Get expanded image element from clicking thumbnail
-        wait_for_section = WebDriverWait(driver, 180)
-        wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
-        expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
+            # Get expanded image element from clicking thumbnail
+            wait_for_section = WebDriverWait(driver, 180)
+            wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
+            expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
 
-        # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
-        # TODO: Handle situation where link is broken and full-res image never loads in (Shelter)
-        # Cycle to next best image (which means that all images should be arranged in order of goodness beforehand)
-        wait_for_full_res_image = WebDriverWait(driver, 180)
-        wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
-        
-        image_url = expanded_image.get_attribute("src")
+            # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
+            # If the image takes more than 5 seconds to load, the link is probably broken so just skip it and move on
+            wait_for_full_res_image = WebDriverWait(driver, 5)
+            wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
+            
+            image_url = expanded_image.get_attribute("src")
 
-        response = requests.get(image_url)
-        raw = response.content
-        img = Image.open(BytesIO(raw))
-        full_size_images_pillow.append(img)
-        full_size_images_raw.append(raw)
+            response = requests.get(image_url)
+            raw = response.content
+            img = Image.open(BytesIO(raw))
+            full_size_images_pillow.append(img)
+            full_size_images_raw.append(raw)
+        except:
+            continue
+            
+        # Break once we have enough images
+        if len(full_size_images_pillow) >= MAX_NUM_THUMBNAILS:
+            break
 
     driver.close()
 
