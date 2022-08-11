@@ -1,6 +1,16 @@
-from ast import parse
-import sys
 import argparse
+import os
+
+def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
+    args = "--extract-audio"
+    if transcode_to_mp3:
+        args += "--audio-format mp3 --audio-quality 128k"
+    
+    if cover_artwork:
+        args += "--embed-thumbnail"
+
+    os.system("youtube-dl" + " " + args + " " + link)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -12,5 +22,6 @@ if __name__ == "__main__":
     link_sources.add_argument("-s", "--single-link", help="Pass a single URL to a YouTube song or video")
     
     args = parser.parse_args()
-    print(args.link_list)
-    print(args.music)
+
+    if args.single_link != None:
+        youtube_dl_wrapper(args.single_link, args.transcode_to_mp3, args.cover_artwork, args.music)
