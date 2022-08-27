@@ -2,12 +2,12 @@ import argparse
 import os
 
 def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
-    args = "--extract-audio"
+    args = "--extract-audio "
     if transcode_to_mp3:
-        args += "--audio-format mp3 --audio-quality 128k"
+        args += "--audio-format mp3 --audio-quality 128k "
     
     if cover_artwork:
-        args += "--embed-thumbnail"
+        args += "--embed-thumbnail "
 
     os.system("youtube-dl" + " " + args + " " + link)
 
