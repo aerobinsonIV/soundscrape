@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
 
-LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6 YYrds"
+LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6"
 
 def match_confidence(real_title, real_artist, test_title, test_artist):
     title_ratio = fuzz.ratio(real_title, test_title)
@@ -42,18 +42,19 @@ def get_html_genius(artist, title, cache = False):
     cache_filename = re.sub(" ", "_", artist) + "_" + re.sub(" ", "_", title) + "_genius.html"
     cache_full_path = os.path.join(cache_path, cache_filename)
     
-    # Does cache dir exist?
-    if os.path.isdir(cache_path):
+    if cache:
+        # Does cache dir exist?
+        if os.path.isdir(cache_path):
 
-        # Is the HTML for this particular song cached?
-        if os.path.isfile(cache_full_path):
-            with open(cache_full_path, "r", encoding="utf-8") as f:
-                html = f.read()
-            
-            print(f"Found HTML for {artist} - {title} in cache!")
-            return html
-    else:
-        os.mkdir(cache_path)
+            # Is the HTML for this particular song cached?
+            if os.path.isfile(cache_full_path):
+                with open(cache_full_path, "r", encoding="utf-8") as f:
+                    html = f.read()
+                
+                print(f"Found HTML for {artist} - {title} in cache!")
+                return html
+        else:
+            os.mkdir(cache_path)
 
     processed_artist = search_term_preprocessing(artist)
     processed_title = search_term_preprocessing(title)
@@ -80,8 +81,6 @@ def get_html_genius(artist, title, cache = False):
         except:
             # This page is weird and not all the results sections have this label
             continue
-    
-    driver.close()
 
     search_soup = BeautifulSoup(song_results_section_html, 'html.parser')
 
@@ -110,8 +109,15 @@ def get_html_genius(artist, title, cache = False):
         # None of the results were even close
         return None
 
-    # Get lyrics page from link that best matched input title and artist
-    lyrics_page_soup = soup_url(best_url)
+    # Navigate to lyrics page
+    driver.get(best_url)
+
+    # Wait for redirect to actual lyrics page
+    wait_for_lyrics_container = WebDriverWait(driver, 180)
+    wait_for_lyrics_container.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, LYRICS_CONTAINER_CLASS)))
+    lyrics_page_soup = BeautifulSoup(str(driver.page_source), 'html.parser')
+
+    driver.close()
 
     lyrics_page_html = str(lyrics_page_soup.prettify())
 
@@ -440,4 +446,4 @@ if __name__ == "__main__":
     # Since this script is being run standalone rather than having its functions called by lyric_adder,
     # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
     # If we're debugging parsing.
-    print(get_lyrics_genius(artist, title, cache=True))
+    print(get_lyrics_genius(artist, title, cache=False))
