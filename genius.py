@@ -5,34 +5,15 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+from PIL import Image
 import re #regex 
 from lyrics import search_term_preprocessing, match_confidence, clean_artist, clean_title
 
+# This is accessed by multiple functions, don't make it a local
 LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6"
 
-def get_html_genius(artist, title, cache = False):
-    # Make input case insensitive
-    artist = artist.lower()
-    title = title.lower()
-
-    cache_path = os.path.join(os.getcwd(), "cached_html")
-    cache_filename = re.sub(" ", "_", artist) + "_" + re.sub(" ", "_", title) + "_genius.html"
-    cache_full_path = os.path.join(cache_path, cache_filename)
-    
-    if cache:
-        # Does cache dir exist?
-        if os.path.isdir(cache_path):
-
-            # Is the HTML for this particular song cached?
-            if os.path.isfile(cache_full_path):
-                with open(cache_full_path, "r", encoding="utf-8") as f:
-                    html = f.read()
-                
-                print(f"Found HTML for {artist} - {title} in cache!")
-                return html
-        else:
-            os.mkdir(cache_path)
-
+# Returns driver
+def navigate_to_page_genius(artist, title):
     processed_artist = search_term_preprocessing(artist)
     processed_title = search_term_preprocessing(title)
 
@@ -92,6 +73,35 @@ def get_html_genius(artist, title, cache = False):
     # Wait for redirect to actual lyrics page
     wait_for_lyrics_container = WebDriverWait(driver, 180)
     wait_for_lyrics_container.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, LYRICS_CONTAINER_CLASS)))
+    
+    return driver
+
+def get_html_genius(artist, title, cache = False):
+    # Make input case insensitive
+    artist = artist.lower()
+    title = title.lower()
+
+    cache_path = os.path.join(os.getcwd(), "cached_html")
+    cache_filename = re.sub(" ", "_", artist) + "_" + re.sub(" ", "_", title) + "_genius.html"
+    cache_full_path = os.path.join(cache_path, cache_filename)
+    
+    if cache:
+        # Does cache dir exist?
+        if os.path.isdir(cache_path):
+
+            # Is the HTML for this particular song cached?
+            if os.path.isfile(cache_full_path):
+                with open(cache_full_path, "r", encoding="utf-8") as f:
+                    html = f.read()
+                
+                print(f"Found HTML for {artist} - {title} in cache!")
+                return html
+        else:
+            os.mkdir(cache_path)
+
+    # Get to the lyrics page
+    driver = navigate_to_page_genius(artist, title)
+    
     lyrics_page_soup = BeautifulSoup(str(driver.page_source), 'html.parser')
 
     driver.close()
@@ -271,6 +281,52 @@ def get_lyrics_genius(artist, title, cache=False):
     html = get_html_genius(artist, title, cache)
     return extract_lyrics_from_html_genius(html)
 
+def get_artwork_image_genius(artist, title) -> Image.Image:
+    
+    ARTWORK_IMAGE_CLASS = "SizedImage__Image-sc-1hyeaua-1"
+
+    driver = navigate_to_page_genius(artist, title)
+
+    image_element = driver.find_elements(By.CLASS_NAME, ARTWORK_IMAGE_CLASS)[0]
+    image_url = str(image_element.get_attribute("src"))
+
+    image_url_trimmed = "https://" + image_url[image_url.find("images.genius.com"):]
+    print(image_url_trimmed)
+
+    # Super hacky HTML unescaping because I coudln't get html.unescape to work
+    image_url_trimmed_decoded =  image_url_trimmed.replace("%2F", "/")
+
+    print(image_url_trimmed_decoded)
+
+    driver.get(image_url_trimmed_decoded)
+
+    # Wait for image to load (anti-bot)
+    wait_for_image = WebDriverWait(driver, 180)
+    wait_for_image.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "img")))
+
+    # We can't use requests to download the image directly because then we'll get stopped by the bot protection
+    # We also can't download the image file via Selenium because that functionality isn't supported
+    # Since we're doing a reverse image search anyway, a screenshot will be sufficient
+    big_image_element = driver.find_elements(By.TAG_NAME, "img")[0]
+
+    # Create images folder if it doesn't exist
+    image_path = os.path.join(os.getcwd(), "images")
+    if not os.path.isdir(image_path):
+        os.mkdir(image_path)
+
+    image_filename = image_url_trimmed_decoded[image_url_trimmed_decoded.find("genius.com/") + 11:-4] + ".png"
+    print(image_filename)
+    image_path = os.path.join(os.getcwd(), "images", image_filename)
+    print(image_path)
+    big_image_element.screenshot(image_path)
+
+    driver.close()
+    
+    # Open the screenshot with Pillow
+    pil_image = Image.open(image_path)
+
+    return pil_image
+
 if __name__ == "__main__":
     if(len(sys.argv) < 2):
         print("Please specify artist artist and title.")
@@ -283,4 +339,4 @@ if __name__ == "__main__":
     # Since this script is being run standalone rather than having its functions called by lyric_adder,
     # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
     # If we're debugging parsing.
-    print(get_lyrics_genius(artist, title, cache=False))
+    get_artwork_image_genius(artist, title).show()
