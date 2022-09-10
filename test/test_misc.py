@@ -1,5 +1,5 @@
 from unittest import TestCase
-from lyric_adder import generate_lyrics_filename
+from lyrics import generate_lyrics_filename
 from genius import clean_artist, clean_title, search_term_preprocessing
 
 class MiscTests(TestCase):
@@ -41,8 +41,8 @@ class MiscTests(TestCase):
         self.assertEqual(clean_title(input_title), expected_output)
 
     def test_clean_artist(self):
-        input_artist = "Virual Riot; Submatik, Holly Drummond"
-        expected_output = "Virual Riot Submatik Holly Drummond"
+        input_artist = "Virtual Riot; Submatik, Holly Drummond"
+        expected_output = "Virtual Riot Submatik Holly Drummond"
 
         self.assertEqual(clean_artist(input_artist), expected_output)
 

@@ -1,3 +1,4 @@
+import sys
 import os
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -5,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 import re #regex 
-from lyrics import search_term_preprocessing, match_confidence
+from lyrics import search_term_preprocessing, match_confidence, clean_artist, clean_title
 
 LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6"
 
@@ -269,3 +270,17 @@ def genius_parser(input_soup):
 def get_lyrics_genius(artist, title, cache=False):
     html = get_html_genius(artist, title, cache)
     return extract_lyrics_from_html_genius(html)
+
+if __name__ == "__main__":
+    if(len(sys.argv) < 2):
+        print("Please specify artist artist and title.")
+        print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
+        exit()
+
+    artist = clean_artist(sys.argv[1])
+    title = clean_title(sys.argv[2])
+
+    # Since this script is being run standalone rather than having its functions called by lyric_adder,
+    # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
+    # If we're debugging parsing.
+    print(get_lyrics_genius(artist, title, cache=False))

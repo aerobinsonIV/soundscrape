@@ -2,7 +2,6 @@ import os
 import sys
 import re #regex 
 from fuzzywuzzy import fuzz # Fuzzy string matching library
-from genius import get_lyrics_genius
 
 # Import modified stagger submodule
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
@@ -89,16 +88,3 @@ def notepad(artist, title, lyrics):
 
     return(edited_lyrics)
 
-if __name__ == "__main__":
-    if(len(sys.argv) < 2):
-        print("Please specify artist artist and title.")
-        print("E.g: python3 lyric_getter.py \"Jousboxx, Fyrebreak, Joelle J\" \"Beyond\"")
-        exit()
-
-    artist = clean_artist(sys.argv[1])
-    title = clean_title(sys.argv[2])
-
-    # Since this script is being run standalone rather than having its functions called by lyric_adder,
-    # We're most likely debugging. Cache HTML files so we don't have to keep redownloading them
-    # If we're debugging parsing.
-    print(get_lyrics_genius(artist, title, cache=False))
