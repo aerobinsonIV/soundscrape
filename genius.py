@@ -290,13 +290,10 @@ def get_artwork_image_genius(artist, title) -> Image.Image:
     image_element = driver.find_elements(By.CLASS_NAME, ARTWORK_IMAGE_CLASS)[0]
     image_url = str(image_element.get_attribute("src"))
 
-    image_url_trimmed = "https://" + image_url[image_url.find("images.genius.com"):]
-    print(image_url_trimmed)
+    image_url_trimmed = "https://" + image_url[image_url.find("images."):]
 
     # Super hacky HTML unescaping because I coudln't get html.unescape to work
     image_url_trimmed_decoded =  image_url_trimmed.replace("%2F", "/")
-
-    print(image_url_trimmed_decoded)
 
     driver.get(image_url_trimmed_decoded)
 
@@ -315,9 +312,7 @@ def get_artwork_image_genius(artist, title) -> Image.Image:
         os.mkdir(image_path)
 
     image_filename = image_url_trimmed_decoded[image_url_trimmed_decoded.find("genius.com/") + 11:-4] + ".png"
-    print(image_filename)
     image_path = os.path.join(os.getcwd(), "images", image_filename)
-    print(image_path)
     big_image_element.screenshot(image_path)
 
     driver.close()
