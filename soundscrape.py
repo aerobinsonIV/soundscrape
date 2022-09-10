@@ -1,3 +1,4 @@
+from genius import *
 from lyrics import *
 from artwork import *
 from util import *

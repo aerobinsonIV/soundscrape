@@ -1,6 +1,6 @@
 from unittest import TestCase
 import os
-from lyrics import extract_lyrics_from_html_genius, remove_newlines
+from genius import extract_lyrics_from_html_genius, remove_newlines
 
 def format_output_comparison(actual: str, expected: str):
     return f"\n----------------------\nExpected output:\n----------------------\n{expected}\n----------------------\nActual output:\n----------------------\n{actual}\n----------------------"

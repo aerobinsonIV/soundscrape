@@ -12,6 +12,7 @@ from io import BytesIO
 import sys
 import os
 
+# Import modified stagger submodule
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
@@ -178,7 +179,6 @@ def search_cover_artwork_by_image(image: Image.Image):
     ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
     EXPANDED_IMAGE_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img"
 
-    # TODO: Determine this experimentally
     MAX_GOOGLE_IMAGES_LOAD_RESOLUTION = 3200
 
     # Save given image as a file so we can upload it to google images
