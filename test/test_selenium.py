@@ -1,7 +1,6 @@
 import os
 import shutil
 from unittest import TestCase
-from lyrics import generate_lyrics_filename
 from genius import get_artwork_image_genius
 
 def test_get_artwork(artist, title) -> int:
@@ -27,12 +26,6 @@ def test_get_artwork(artist, title) -> int:
 class TestGetGeniusArtwork(TestCase):
     def test_kid_laroi_erase_u(self):
         self.assertTrue(test_get_artwork("The Kid Laroi", "Erase U"))
-    
-    def test_sent_by_ravens_listen(self):
-        self.assertTrue(test_get_artwork("Sent By Ravens", "Listen"))
-
-    def test_chase_atlantic_cold_nights(self):
-        self.assertTrue(test_get_artwork("Chase Atlantic", "Cold Nights"))
 
     def test_nick_jonas_chains(self):
         self.assertTrue(test_get_artwork("Nick Jonas", "Chains"))
