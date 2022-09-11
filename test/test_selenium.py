@@ -1,7 +1,11 @@
 import os
 import shutil
 from unittest import TestCase
+from PIL import Image
+from artwork import search_cover_artwork_by_image, MAX_NUM_THUMBNAILS
 from genius import get_artwork_image_genius, navigate_to_page_genius
+
+TEST_ARTWORK_REL_PATH = "test\sandstorm.jpg"
 
 def test_get_artwork(artist, title) -> int:
     image_dir = os.path.join(os.getcwd(), "images")
@@ -40,4 +44,16 @@ class TestGeniusNavigation(TestCase):
         # Obviously this isn't a real song (at least at the time of writing)
         with self.assertRaises(Exception):
             navigate_to_page_genius("wefwfewefwwefwefwefwfwf", "eeeeeeeeeeeeeeeeeeeeee")
+
+class TestReverseImageSearch(TestCase):
+    def test_reverse_image_search(self):
+        test_artwork_full_path = os.path.join(os.getcwd(), TEST_ARTWORK_REL_PATH)
+
+        test_artwork = Image.open(test_artwork_full_path)
+
+        found_images = search_cover_artwork_by_image(test_artwork)
         
+        # Note that if enough good matches aren't found, fewer than MAX_NUM_THUMBNAILS images can be returned.
+        # It's important that the test artwork be for a reasonably popular song so that we get plenty of results.
+        self.assertEqual(len(found_images), MAX_NUM_THUMBNAILS)
+

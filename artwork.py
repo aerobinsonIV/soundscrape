@@ -171,9 +171,9 @@ def choose_image(images: List):
 # List of bytestrings are the directly downloaded image datas that will be used to create the pillow images
 def search_cover_artwork_by_image(image: Image.Image):
 
-    IMAGE_BUTTON_CLASS = "tdPRye"
-    UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
-    UPLOAD_IMAGE_TAB_XPATH =  "/html/body/div[1]/div[3]/div/div[2]/form/div[1]/div/a"
+    IMAGE_BUTTON_CLASS = "Gdd5U"
+    UPLOAD_FILE_LINK_CLASS = "DV7the"
+    UPLOAD_FILE_LINK_XPATH =  "/html/body/div[1]/div[3]/form/div[1]/div[1]/div[3]/c-wiz/div[3]/div/div[3]/div[2]/div/div[2]/span"
     BROWSE_BUTTON_ID = "awyMjb"
     ALL_SIZES_LINK_XPATH = "/html/body/div[7]/div/div[10]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/span[1]/a"
     ALL_IMAGE_THUMBNAILS_DIV_CLASS = "islrc"
@@ -193,27 +193,36 @@ def search_cover_artwork_by_image(image: Image.Image):
 
     driver.get(f'https://images.google.com')
     
-    # Click the image button with the camera icon
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, IMAGE_BUTTON_CLASS)))
-    image_button = driver.find_elements(By.CLASS_NAME, IMAGE_BUTTON_CLASS)[0]
-    image_button.click()
+    try:
+        # Click the image button with the camera icon
+        wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
+        wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, IMAGE_BUTTON_CLASS)))
+        image_button = driver.find_elements(By.CLASS_NAME, IMAGE_BUTTON_CLASS)[0]
+        image_button.click()
+    except:
+        driver.close()
+        raise Exception("Couldn't find camera icon in search box!")
 
-    # Click the "Upload an image" tab
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, UPLOAD_IMAGE_TAB_XPATH)))
-    upload_image_tab = driver.find_elements(By.XPATH, UPLOAD_IMAGE_TAB_XPATH)[0]
-    upload_image_tab.click()
+    try:
+        # Click the "Upload an image" tab
+        wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
+        wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, UPLOAD_FILE_LINK_CLASS)))
+        upload_file_link = driver.find_elements(By.CLASS_NAME, UPLOAD_FILE_LINK_CLASS)[0]
+        upload_file_link.click()
+    except:
+        driver.close()
+        raise Exception("Couldn't find 'upload an file' link!") 
+    
 
-    # Click the "Browse" button to upload the image
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
-    browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
-    browse_button.send_keys(image_path)
+    # # Click the "Browse" button to upload the image
+    # wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
+    # wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
+    # browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
+    upload_file_link.send_keys(image_path)
     
 
     # Click the "All sizes" link on the search results page to go to the list of image result thumbnails
-    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
     wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, ALL_SIZES_LINK_XPATH)))
     images_tab = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
     images_tab.click()
@@ -222,7 +231,7 @@ def search_cover_artwork_by_image(image: Image.Image):
     os.remove(image_path)
 
     # Get div that contains thumbnails of all the image results
-    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
     wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, ALL_IMAGE_THUMBNAILS_DIV_CLASS)))
     thumbnails_div = driver.find_elements(By.CLASS_NAME, ALL_IMAGE_THUMBNAILS_DIV_CLASS)[0]
     
@@ -259,13 +268,13 @@ def search_cover_artwork_by_image(image: Image.Image):
             thumbnail.click()
 
             # Get expanded image element from clicking thumbnail
-            wait_for_section = WebDriverWait(driver, 180)
+            wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
             wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
             expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
 
             # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
-            # If the image takes more than 5 seconds to load, the link is probably broken so just skip it and move on
-            wait_for_full_res_image = WebDriverWait(driver, 5)
+            # If the image takes too long to load, the link is probably broken so just skip it and move on
+            wait_for_full_res_image = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
             wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
             
             image_url = expanded_image.get_attribute("src")
