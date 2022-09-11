@@ -25,8 +25,13 @@ def test_get_artwork(artist, title) -> int:
 
 class TestGetGeniusArtwork(TestCase):
     def test_kid_laroi_erase_u(self):
-        self.assertTrue(test_get_artwork("The Kid Laroi", "Erase U"))
+        self.assertTrue(test_get_artwork("The Kid Laroi", "ERASE U"))
 
+    # This one tests a bug that caused it to fail when LAROI was all caps
+    def test_kid_laroi_selfish(self):
+        self.assertTrue(test_get_artwork("The Kid LAROI", "SELFISH"))
+
+    # The image for this song is stored on images.rapgenius.com instead of images.genius.com
     def test_nick_jonas_chains(self):
         self.assertTrue(test_get_artwork("Nick Jonas", "Chains"))
 

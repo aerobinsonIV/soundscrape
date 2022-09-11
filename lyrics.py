@@ -9,8 +9,8 @@ import stagger
 from stagger.id3 import *
 
 def match_confidence(real_title, real_artist, test_title, test_artist):
-    title_ratio = fuzz.ratio(real_title, test_title)
-    artist_ratio = fuzz.ratio(real_artist, test_artist)
+    title_ratio = fuzz.ratio(real_title.lower(), test_title.lower())
+    artist_ratio = fuzz.ratio(real_artist.lower(), test_artist.lower())
 
     # Exclude results that are very certainly wrong
     if title_ratio < 50:
@@ -22,7 +22,7 @@ def match_confidence(real_title, real_artist, test_title, test_artist):
     return artist_ratio + title_ratio
 
 def search_term_preprocessing(input_string):
-    return input_string.replace("&", "%26")
+    return input_string.replace("&", "%26").lower()
     
 def clean_title(title):
 
