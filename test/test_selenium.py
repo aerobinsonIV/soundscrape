@@ -1,7 +1,7 @@
 import os
 import shutil
 from unittest import TestCase
-from genius import get_artwork_image_genius
+from genius import get_artwork_image_genius, navigate_to_page_genius
 
 def test_get_artwork(artist, title) -> int:
     image_dir = os.path.join(os.getcwd(), "images")
@@ -35,5 +35,9 @@ class TestGetGeniusArtwork(TestCase):
     def test_nick_jonas_chains(self):
         self.assertTrue(test_get_artwork("Nick Jonas", "Chains"))
 
+class TestGeniusNavigation(TestCase):
+    def test_no_results(self):
+        # Obviously this isn't a real song (at least at the time of writing)
+        with self.assertRaises(Exception):
+            navigate_to_page_genius("wefwfewefwwefwefwefwfwf", "eeeeeeeeeeeeeeeeeeeeee")
         
-

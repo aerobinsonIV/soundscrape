@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions
 from PIL import Image
 import re #regex 
 from lyrics import search_term_preprocessing, match_confidence, clean_artist, clean_title
+from util import PAGE_LOAD_TIMEOUT
 
 # This is accessed by multiple functions, don't make it a local
 LYRICS_CONTAINER_CLASS = "Lyrics__Container-sc-1ynbvzw-6"
@@ -24,11 +25,15 @@ def navigate_to_page_genius(artist, title):
     
     driver.get(f'https://genius.com/search?q={processed_artist}+{processed_title}')
 
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "search-result-section")))
-    result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
+    try:
+        wait_for_section = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
+        wait_for_section.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "search-result-section")))
+        result_sections = driver.find_elements(By.TAG_NAME, "search-result-section")
+    except:
+        driver.close()
+        raise Exception("No search results!")
 
-    wait_for_label = WebDriverWait(driver, 180)
+    wait_for_label = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
     wait_for_label.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, "search_results_label")))
     for item in result_sections:
         try:
@@ -61,17 +66,19 @@ def navigate_to_page_genius(artist, title):
         found_result = True
 
     if not found_result:
-        return None
+        driver.close()
+        raise Exception(f"Error: Failed to parse results for {artist} - {title}")
 
     if best_confidence == 0:
         # None of the results were even close
-        return None
+        driver.close()
+        raise Exception(f"Error: didn't find any good matches on Genius for {artist} - {title}")
 
     # Navigate to lyrics page
     driver.get(best_url)
 
     # Wait for redirect to actual lyrics page
-    wait_for_lyrics_container = WebDriverWait(driver, 180)
+    wait_for_lyrics_container = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
     wait_for_lyrics_container.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, LYRICS_CONTAINER_CLASS)))
     
     return driver
@@ -298,7 +305,7 @@ def get_artwork_image_genius(artist, title) -> Image.Image:
     driver.get(image_url_trimmed_decoded)
 
     # Wait for image to load (anti-bot)
-    wait_for_image = WebDriverWait(driver, 180)
+    wait_for_image = WebDriverWait(driver, PAGE_LOAD_TIMEOUT)
     wait_for_image.until(expected_conditions.presence_of_element_located((By.TAG_NAME, "img")))
 
     # We can't use requests to download the image directly because then we'll get stopped by the bot protection

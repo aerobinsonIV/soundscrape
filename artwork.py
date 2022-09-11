@@ -11,6 +11,7 @@ import requests
 from io import BytesIO
 import sys
 import os
+from util import PAGE_LOAD_TIMEOUT
 
 # Import modified stagger submodule
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))

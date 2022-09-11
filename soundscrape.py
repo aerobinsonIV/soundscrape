@@ -40,23 +40,33 @@ if __name__ == "__main__":
 
     for filename in filenames:
         scanned_title, scanned_artist = get_title_and_artist_from_filename(filename)
-        cleaned_title = clean_title(scanned_title)
-        cleaned_artist = clean_artist(scanned_artist)
+        title = clean_title(scanned_title)
+        artist = clean_artist(scanned_artist)
         
         if args.lyrics:
             # If one song fails, just ignore it and keep going
             try:
                 
-                lyrics = get_lyrics_genius(cleaned_artist, cleaned_title)
-                edited_lyrics = notepad(cleaned_artist, cleaned_title, lyrics)
+                lyrics = get_lyrics_genius(artist, title)
+                edited_lyrics = notepad(artist, title, lyrics)
                 add_lyrics_to_song_file(filename, edited_lyrics)
             except:
                 print(f"Failed to retrieve lyrics for {scanned_artist} - {scanned_title}.")
 
         if args.artwork:
-            # Do cover artwork
-            extracted_artwork = get_image_from_song_file(filename)
-            searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
-            selector = CoverArtSelector(searched_images_pillow)
-            chosen_image_index = selector.show_selection_window()
-            put_image_in_song_file(searched_images_raw[chosen_image_index], filename)
+            
+            try:
+                low_quality_artwork = get_image_from_song_file(filename)
+            except:
+                print("Failed to extract artwork from file. Searching on genius.")
+                try:
+                    low_quality_artwork = get_artwork_image_genius("efwewfewefwfewfe", "weeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+                except:
+                    print("Failed to get cover artwork thumbnail from Genius")
+                    continue
+
+            low_quality_artwork.show()
+            # searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(low_quality_artwork)
+            # selector = CoverArtSelector(searched_images_pillow)
+            # chosen_image_index = selector.show_selection_window()
+            # put_image_in_song_file(searched_images_raw[chosen_image_index], filename)

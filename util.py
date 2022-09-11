@@ -4,6 +4,9 @@ sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
 from stagger.id3 import *
 
+# This is in seconds
+PAGE_LOAD_TIMEOUT = 4
+
 def get_title_and_artist_from_filename(filename):
     # Open tag on song file
     tag = stagger.read_tag(filename)
