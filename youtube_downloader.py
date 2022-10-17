@@ -1,8 +1,16 @@
 import argparse
 import os
 
+def get_yt_music_metadata(link: str):
+    return ("twewt", "wefwfe", "ewfwefwf", "fffffff")
+
 def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
     
+    TITLE_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/yt-formatted-string"
+    ARTIST_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/a[1]"
+    ALBUM_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/a[2]"
+    YEAR_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/span[3]"
+
     args = "--extract-audio "
     if transcode_to_mp3:
         args += "--audio-format mp3 --audio-quality 128k "
@@ -11,6 +19,10 @@ def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork:
         args += "--embed-thumbnail "
 
     os.system("youtube-dl" + " " + args + " " + link)
+
+    if music:
+        print("Got music param")
+        print(get_yt_music_metadata(link))
 
 
 if __name__ == "__main__":
