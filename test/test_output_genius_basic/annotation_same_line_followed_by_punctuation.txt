@@ -1,0 +1,10 @@
+These are lyrics with an annotation, and it's inline.
+These are lyrics with an annotation.
+These are lyrics with an annotation!
+Are these lyrics with an annotation?
+These are lyrics with an annotation:
+These are lyrics with an annotation;
+These are lyrics with an annotation/anchor tag.
+These are lyrics with an annotation\anchor tag.
+I'm 39% sure this will work.
+Could an {annotation} ever be wrapped in curly brackets?

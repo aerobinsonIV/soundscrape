@@ -1,0 +1,4 @@
+Normal text
+Bold with a leading space
+Normal text
+Bold with a trailing space
