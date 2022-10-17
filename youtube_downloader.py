@@ -1,16 +1,50 @@
 import argparse
 import os
+import sys
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions
+
+sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
+import stagger
+from stagger.id3 import *
 
 def get_yt_music_metadata(link: str):
-    return ("twewt", "wefwfe", "ewfwefwf", "fffffff")
-
-def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
     
     TITLE_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/yt-formatted-string"
     ARTIST_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/a[1]"
     ALBUM_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/a[2]"
     YEAR_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/span[3]"
 
+    driver = webdriver.Firefox()
+    
+    ublock_origin_path = "../ublock_origin-1.43.0.xpi"
+    driver.install_addon(ublock_origin_path)
+    
+    driver.get(link)
+
+    wait_for_section = WebDriverWait(driver, 180)
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, ARTIST_XPATH)))
+    
+    title_tag = driver.find_element(By.XPATH, TITLE_XPATH)
+    artist_tag = driver.find_element(By.XPATH, ARTIST_XPATH)
+    album_tag = driver.find_element(By.XPATH, ALBUM_XPATH)
+    year_tag = driver.find_element(By.XPATH, YEAR_XPATH)
+    
+    title = title_tag.get_attribute("innerHTML")
+    artist = artist_tag.get_attribute("innerHTML")
+    album = album_tag.get_attribute("innerHTML")
+    year = year_tag.get_attribute("innerHTML")
+
+    driver.close()
+    
+    return title, artist, album, year
+
+def process_link(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
+    
+    listdir_before = os.listdir()
+    
     args = "--extract-audio "
     if transcode_to_mp3:
         args += "--audio-format mp3 --audio-quality 128k "
@@ -20,9 +54,36 @@ def youtube_dl_wrapper(link: str, transcode_to_mp3: bool = False, cover_artwork:
 
     os.system("youtube-dl" + " " + args + " " + link)
 
+    listdir_after = os.listdir()
+    newly_downloaded_file = None
+    for file in listdir_after:
+        if file not in listdir_before:
+            newly_downloaded_file = file            
+
+    if newly_downloaded_file == None:
+        raise Exception(f"Couldn't identify downloaded file for {link}")
+
     if music:
         print("Got music param")
-        print(get_yt_music_metadata(link))
+        
+        # Back out of temp
+        # TODO: Is there a way to write this so this func doesn't have to trust main to cd,
+        # and so that the metadata function doesn't have to trust this one? Unintuitive code flow
+        title, artist, album, year = get_yt_music_metadata(link)
+
+        # Open tag on song file
+        tag = stagger.default_tag()
+        
+        tag['TIT2'] = title
+        tag['TPE1'] = artist # Artist
+        tag['TPE2'] = artist # Album artist
+        tag['TALB'] = album
+        tag['TYER'] = year # TODO: It's complaining about this one
+
+        tag.write(newly_downloaded_file)
+
+        # Rename file to title of song but keep extension
+        os.rename(newly_downloaded_file, title + newly_downloaded_file[newly_downloaded_file.find("."):])
 
 
 if __name__ == "__main__":
@@ -41,7 +102,7 @@ if __name__ == "__main__":
 
     if args.target[:7] == "http://" or args.target[:8] == "https://" or args.target[:4] == "www.":
         # URL
-        youtube_dl_wrapper(args.target, args.transcode_to_mp3, args.cover_artwork, args.music)
+        process_link(args.target, args.transcode_to_mp3, args.cover_artwork, args.music)
     else:
         # Path to file containing list of links
         with open(args.target, 'r') as f:
@@ -49,4 +110,4 @@ if __name__ == "__main__":
 
         for line in lines:
                 print(f"Downloading {line}", end="")
-                youtube_dl_wrapper(line, args.transcode_to_mp3, args.cover_artwork, args.music)
+                process_link(line, args.transcode_to_mp3, args.cover_artwork, args.music)
