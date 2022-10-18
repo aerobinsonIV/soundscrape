@@ -41,13 +41,12 @@ def get_yt_music_metadata(link: str):
     
     return title, artist, album, year
 
-def process_link(link: str, transcode_to_mp3: bool = False, cover_artwork: bool = False, music: bool = False):
+def process_link(link: str, cover_artwork: bool = False, music: bool = False):
     
     listdir_before = os.listdir()
     
     args = "--extract-audio "
-    if transcode_to_mp3:
-        args += "--audio-format mp3 --audio-quality 128k "
+    args += "--audio-format mp3 --audio-quality 256k"
     
     if cover_artwork:
         args += "--embed-thumbnail "
@@ -89,7 +88,6 @@ def process_link(link: str, transcode_to_mp3: bool = False, cover_artwork: bool 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("target", help="YouTube link or path of a file containing a list of YouTube links")
-    parser.add_argument("-t", "--transcode-to-mp3", help="Transcode the downloaded opus file to mp3, lower quality but better compatibility", action='store_true')
     parser.add_argument("-c", "--cover-artwork", help="Embed video thumbnail as cover artwork", action='store_true')
     parser.add_argument("-m", "--music", help="Treat this as a YouTube music link (rather than e.g. a music video) and get the title, artist, and year from the webpage.", action='store_true')
     
@@ -102,12 +100,12 @@ if __name__ == "__main__":
 
     if args.target[:7] == "http://" or args.target[:8] == "https://" or args.target[:4] == "www.":
         # URL
-        process_link(args.target, args.transcode_to_mp3, args.cover_artwork, args.music)
+        process_link(args.target, args.cover_artwork, args.music)
     else:
         # Path to file containing list of links
-        with open(args.target, 'r') as f:
+        with open(os.path.join(os.getcwd(), args.target), 'r') as f:
             lines = f.readlines()
 
         for line in lines:
                 print(f"Downloading {line}", end="")
-                process_link(line, args.transcode_to_mp3, args.cover_artwork, args.music)
+                process_link(line, args.cover_artwork, args.music)
