@@ -68,12 +68,7 @@ def process_link(link: str, cover_artwork: bool = False, music: bool = False):
     if newly_downloaded_file == None:
         raise Exception(f"Couldn't identify downloaded file for {link}")
 
-    if music:
-        print("Got music param")
-        
-        # Back out of temp
-        # TODO: Is there a way to write this so this func doesn't have to trust main to cd,
-        # and so that the metadata function doesn't have to trust this one? Unintuitive code flow
+    if music:    
         title, artist, album, year = get_yt_music_metadata(link)
 
         # Open tag on song file
@@ -83,12 +78,22 @@ def process_link(link: str, cover_artwork: bool = False, music: bool = False):
         tag['TPE1'] = artist # Artist
         tag['TPE2'] = artist # Album artist
         tag['TALB'] = album
-        tag['TYER'] = year # TODO: It's complaining about this one
+        # tag['TYER'] = year # TODO: It's complaining about this one
 
         tag.write(newly_downloaded_file)
 
+        # Search from back to front for "." indicating file extension
+        # Front to back doesn't work if the title cotains e.g. "producer ft. vocalist"
+        final_filename = title + newly_downloaded_file[newly_downloaded_file.rfind("."):]
+
+        # If a file with the destination name already exists, delete it
+        if os.path.exists(final_filename):
+            os.remove(final_filename)
+
         # Rename file to title of song but keep extension
-        os.rename(newly_downloaded_file, title + newly_downloaded_file[newly_downloaded_file.find("."):])
+        os.rename(newly_downloaded_file, final_filename)
+
+    print("---------------------------------------------------")
 
 
 if __name__ == "__main__":
@@ -98,8 +103,6 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--music", help="Treat this as a YouTube music link (rather than e.g. a music video) and get the title, artist, and year from the webpage.", action='store_true')
     
     args = parser.parse_args()
-
-    print(args.target)
 
     # Download songs to the temp folder
     os.chdir("./temp")
