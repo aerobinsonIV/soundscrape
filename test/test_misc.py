@@ -1,6 +1,5 @@
 from unittest import TestCase
-from lyric_adder import generate_lyrics_filename
-from lyrics import clean_artist, clean_title, search_term_preprocessing
+from lyrics import clean_artist, clean_title, search_term_preprocessing, generate_lyrics_filename
 
 class MiscTests(TestCase):
     def test_predownloaded_html(self):
