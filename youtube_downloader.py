@@ -29,13 +29,19 @@ def get_yt_music_metadata(link: str):
     
     title_tag = driver.find_element(By.XPATH, TITLE_XPATH)
     artist_tag = driver.find_element(By.XPATH, ARTIST_XPATH)
-    album_tag = driver.find_element(By.XPATH, ALBUM_XPATH)
-    year_tag = driver.find_element(By.XPATH, YEAR_XPATH)
-    
     title = title_tag.get_attribute("innerHTML")
     artist = artist_tag.get_attribute("innerHTML")
-    album = album_tag.get_attribute("innerHTML")
-    year = year_tag.get_attribute("innerHTML")
+
+    # For singles, finding album will fail. 
+    # And also year for some reason, I guess it displays year for albums only
+    try:
+        album_tag = driver.find_element(By.XPATH, ALBUM_XPATH)
+        year_tag = driver.find_element(By.XPATH, YEAR_XPATH)
+        album = album_tag.get_attribute("innerHTML")
+        year = year_tag.get_attribute("innerHTML")
+    except:
+        album = title
+        year = None
 
     driver.close()
     
