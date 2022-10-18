@@ -8,9 +8,11 @@ class YTMusicMetadataTests(TestCase):
         expected_metadata = "I don't know what I'm doing", "Mameyudoufu", "I don't know what I'm doing", "2021"
         os.chdir("./temp")
         self.assertEqual(get_yt_music_metadata(link), expected_metadata)
+        os.chdir("..")
 
     def test_atmozfears_release(self):
         link = "https://music.youtube.com/watch?v=B-7m0EfW7LM"
         expected_metadata = "Release (feat. David Spekter)", "Atmozfears", "Release (feat. David Spekter)", None
         os.chdir("./temp")
         self.assertEqual(get_yt_music_metadata(link), expected_metadata)
+        os.chdir("..")
