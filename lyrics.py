@@ -392,8 +392,12 @@ def add_lyrics_to_song_file(song_file, lyrics):
     # Lyrics are probably in utf-8, so encode them into ascii so my hacky stagger hack doesn't flip out
     ascii_lyrics = lyrics.encode("ascii", "ignore")
 
-    # Open tag on song file
-    tag = stagger.read_tag(song_file)
+    try:
+        # Open tag on song file
+        tag = stagger.read_tag(song_file)
+    except:
+        # File had no tag, make a new one
+        tag = stagger.default_tag()
     
     tag['USLT'] = "eng|" + ascii_lyrics.decode()
     tag.write(song_file)

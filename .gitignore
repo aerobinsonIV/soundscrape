@@ -131,9 +131,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Music files
-*.mp3
-
 # temp folder 
 temp/
 

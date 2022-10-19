@@ -1,5 +1,12 @@
+import os
+import sys
+import shutil
 from unittest import TestCase
-from lyrics import clean_artist, clean_title, search_term_preprocessing, generate_lyrics_filename
+from lyrics import add_lyrics_to_song_file, clean_artist, clean_title, search_term_preprocessing, generate_lyrics_filename
+
+sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
+import stagger
+from stagger.id3 import *
 
 class MiscTests(TestCase):
     def test_predownloaded_html(self):
@@ -44,4 +51,19 @@ class MiscTests(TestCase):
         expected_output = "Virual Riot Submatik Holly Drummond"
 
         self.assertEqual(clean_artist(input_artist), expected_output)
+
+    # This test doesn't properly isolate the issue
+    def test_lyrics_properly_terminated(self):
+        src = os.path.join(os.getcwd(), "test/yeet.mp3")
+        dest = os.path.join(os.getcwd(), "temp/yeet.mp3")
+        shutil.copyfile(src, dest)
+
+        lyrics = "yeet"
+
+        add_lyrics_to_song_file(dest, lyrics)
+
+        tag = stagger.read_tag(dest)
+        tag_lyrics = tag['USLT'].text[0][4:]
+        self.assertEqual(tag_lyrics, lyrics)
+        os.remove(dest)
 
