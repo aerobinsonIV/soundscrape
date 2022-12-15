@@ -165,6 +165,23 @@ def choose_image(images: List):
     selector = CoverArtSelector(images)
     return selector.show_selection_window()
 
+# Takes in path to image file, returns URL to google lens search of that image
+def search_google_lens(image_path: str):
+    headers = {}
+    headers['Content-Type'] = 'multipart/form-data; boundary=---------------------------297828457823629212682512421311'
+
+    img_bytes = open(image_path, "rb").read()
+
+    p1 = f"""-----------------------------297828457823629212682512421311"""
+    p1 += f"""\nContent-Disposition: form-data; name="encoded_image"; filename="artwork.jpg\""""
+    p1 += f"""\nContent-Type: image/jpeg\n\n"""
+    p2 = """-----------------------------297828457823629212682512421311--\n"""
+
+    payload = p1.encode() + img_bytes + "\n".encode() + p2.encode()
+    response = requests.request("POST", "https://lens.google.com/upload", headers=headers, data=payload)
+
+    return re.findall(r'(?<= URL=)(.*?)(")', response.text)[0][0]
+
 # Returns tuple of (List[Image.Image], List[Bytes]) where both lists are the same length
 # List of bytestrings are the directly downloaded image datas that will be used to create the pillow images
 def search_cover_artwork_by_image(image: Image.Image):
