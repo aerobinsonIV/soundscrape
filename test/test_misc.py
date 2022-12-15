@@ -3,6 +3,7 @@ import sys
 import shutil
 from unittest import TestCase
 from lyrics import add_lyrics_to_song_file, clean_artist, clean_title, search_term_preprocessing, generate_lyrics_filename
+import artwork
 
 sys.path.insert(0, os.path.join(os.getcwd(), "stagger"))
 import stagger
@@ -51,6 +52,11 @@ class MiscTests(TestCase):
         expected_output = "Virual Riot Submatik Holly Drummond"
 
         self.assertEqual(clean_artist(input_artist), expected_output)
+
+    def test_search_google_lens(self):
+        test_image_path = "test/rick.jpg"
+        url = artwork.search_google_lens(test_image_path)
+        self.assertEqual(type(url), str)
 
     # This test doesn't properly isolate the issue
     def test_lyrics_properly_terminated(self):
