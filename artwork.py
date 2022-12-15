@@ -3,6 +3,7 @@ from tkinter import ttk
 from typing import List
 from PIL import Image, ImageDraw, ImageTk
 import math
+import requests, re
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -186,14 +187,10 @@ def search_google_lens(image_path: str):
 # List of bytestrings are the directly downloaded image datas that will be used to create the pillow images
 def search_cover_artwork_by_image(image: Image.Image):
 
-    IMAGE_BUTTON_CLASS = "tdPRye"
-    UPLOAD_IMAGE_TAB_CLASS = "iOGqzf H4qWMc aXIg1b"
-    UPLOAD_IMAGE_TAB_XPATH =  "/html/body/div[1]/div[3]/div/div[2]/form/div[1]/div/a"
-    BROWSE_BUTTON_ID = "awyMjb"
-    ALL_SIZES_LINK_XPATH = "/html/body/div[7]/div/div[10]/div/div[2]/div[1]/div/div[1]/div[2]/div[2]/span[1]/a"
+    ALL_SIZES_LINK_XPATH = "//*[contains(text(), 'All sizes')]"
     ALL_IMAGE_THUMBNAILS_DIV_CLASS = "islrc"
-    ALL_IMAGE_THUMBNAILS_DIV_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[1]/div/div/div/div[1]/div[1]/span/div[1]/div[1]"
-    EXPANDED_IMAGE_XPATH = "/html/body/div[2]/c-wiz/div[3]/div[2]/div[3]/div/div/div[3]/div[2]/c-wiz/div/div[1]/div[1]/div[3]/div/a/img"
+    EXPANDED_IMAGE_CLASS = "KAlRDb"
+    FIND_IMAGE_SOURCE_BUTTON_CLASS = "VfPpkd-mRLv6"
 
     # TODO: Determine this experimentally
     MAX_GOOGLE_IMAGES_LOAD_RESOLUTION = 3200
@@ -201,38 +198,28 @@ def search_cover_artwork_by_image(image: Image.Image):
     # Save given image as a file so we can upload it to google images
     image_path = os.path.join(os.getcwd(), "temp", "temp_image.jpg")
     image.save(image_path)
-
+    
+    lens_url = search_google_lens(image_path)
     driver = webdriver.Firefox()
     
     ublock_origin_path = "ublock_origin-1.43.0.xpi"
     driver.install_addon(ublock_origin_path)
 
-    driver.get(f'https://images.google.com')
-    
-    # Click the image button with the camera icon
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, IMAGE_BUTTON_CLASS)))
-    image_button = driver.find_elements(By.CLASS_NAME, IMAGE_BUTTON_CLASS)[0]
-    image_button.click()
+    driver.get(lens_url)
 
-    # Click the "Upload an image" tab
+    # Click the "Find image source" button in google lens page to go to old search results
     wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, UPLOAD_IMAGE_TAB_XPATH)))
-    upload_image_tab = driver.find_elements(By.XPATH, UPLOAD_IMAGE_TAB_XPATH)[0]
-    upload_image_tab.click()
+    wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, FIND_IMAGE_SOURCE_BUTTON_CLASS)))
+    find_image_source_button = driver.find_elements(By.CLASS_NAME, FIND_IMAGE_SOURCE_BUTTON_CLASS)[0]
 
-    # Click the "Browse" button to upload the image
-    wait_for_section = WebDriverWait(driver, 180)
-    wait_for_section.until(expected_conditions.presence_of_element_located((By.ID, BROWSE_BUTTON_ID)))
-    browse_button = driver.find_elements(By.ID, BROWSE_BUTTON_ID)[0]
-    browse_button.send_keys(image_path)
-    
+    # Go to the page linked to by that button (clicking the button opens a new tab and Selenium doesn't handle it that well)
+    driver.get(find_image_source_button.get_attribute("href"))
 
     # Click the "All sizes" link on the search results page to go to the list of image result thumbnails
     wait_for_section = WebDriverWait(driver, 180)
     wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, ALL_SIZES_LINK_XPATH)))
-    images_tab = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
-    images_tab.click()
+    all_sizes_link = driver.find_elements(By.XPATH, ALL_SIZES_LINK_XPATH)[0]
+    all_sizes_link.click()
 
     # We're done with the image file, delete it
     os.remove(image_path)
@@ -276,14 +263,17 @@ def search_cover_artwork_by_image(image: Image.Image):
 
             # Get expanded image element from clicking thumbnail
             wait_for_section = WebDriverWait(driver, 180)
-            wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
-            expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
+            wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, EXPANDED_IMAGE_CLASS)))
+            expanded_image = driver.find_elements(By.CLASS_NAME, EXPANDED_IMAGE_CLASS)[0]
+            # wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
+            # expanded_image = driver.find_elements(By.XPATH, EXPANDED_IMAGE_XPATH)[0]
 
             # Wait until full-sized image loads in (src changes from bas64 encoded thumbnail to a link that starts with http)
             # If the image takes more than 5 seconds to load, the link is probably broken so just skip it and move on
             wait_for_full_res_image = WebDriverWait(driver, 5)
-            wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
-            
+            # wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.XPATH, EXPANDED_IMAGE_XPATH), "src", "http"))
+            wait_for_full_res_image.until(expected_conditions.text_to_be_present_in_element_attribute((By.CLASS_NAME, EXPANDED_IMAGE_CLASS), "src", "http"))
+
             image_url = expanded_image.get_attribute("src")
 
             response = requests.get(image_url)
@@ -330,15 +320,7 @@ def put_image_in_song_file(raw_image: bytes, filename: str):
     os.remove(image_path)
 
 if __name__ == "__main__":
-    # # extracted_artwork = get_image_from_song_file("temp_artwork\\rick.mp3")
-    # # searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
+    extracted_artwork = get_image_from_song_file("temp\\rick.mp3")
+    searched_images_pillow, searched_images_raw = search_cover_artwork_by_image(extracted_artwork)
 
-    searched_images_pillow = []
-    for i in range(1, 6):
-        searched_images_pillow.append(Image.open(f"D:\\soundscrape\\temp_artwork\\{i}.jpg"))
-
-    selector = choose_image(searched_images_pillow)
-    # # chosen_image_index = selector.show_selection_window()
-    # # put_image_in_song_file(searched_images_raw[chosen_image_index], "temp_artwork\\rick.mp3")
-
-    # generate_thumbnail(searched_images_pillow[0]).show()
+    chosen_image_index = choose_image(searched_images_pillow)
