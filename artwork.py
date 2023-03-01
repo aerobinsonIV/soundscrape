@@ -262,7 +262,7 @@ def search_cover_artwork_by_image(image: Image.Image):
             thumbnail.click()
 
             # Get expanded image element from clicking thumbnail
-            wait_for_section = WebDriverWait(driver, 180)
+            wait_for_section = WebDriverWait(driver, 5)
             wait_for_section.until(expected_conditions.presence_of_element_located((By.CLASS_NAME, EXPANDED_IMAGE_CLASS)))
             expanded_image = driver.find_elements(By.CLASS_NAME, EXPANDED_IMAGE_CLASS)[0]
             # wait_for_section.until(expected_conditions.presence_of_element_located((By.XPATH, EXPANDED_IMAGE_XPATH)))
