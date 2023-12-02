@@ -17,10 +17,11 @@ def get_yt_music_metadata(link: str):
     ALBUM_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/a[2]"
     YEAR_XPATH = "/html/body/ytmusic-app/ytmusic-app-layout/ytmusic-player-bar/div[2]/div[2]/span/span[2]/yt-formatted-string/span[3]"
 
-    driver = webdriver.Firefox()
+    # driver = webdriver.Firefox()
+    driver = webdriver.Chrome()
     
-    ublock_origin_path = "../ublock_origin-1.43.0.xpi"
-    driver.install_addon(ublock_origin_path)
+    # ublock_origin_path = "../ublock_origin-1.43.0.xpi"
+    # driver.install_addon(ublock_origin_path)
     
     driver.get(link)
 

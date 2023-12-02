@@ -59,10 +59,11 @@ def get_html_genius(artist, title, cache = False):
     processed_artist = search_term_preprocessing(artist)
     processed_title = search_term_preprocessing(title)
 
-    driver = webdriver.Firefox()
+    # driver = webdriver.Firefox()
+    driver = webdriver.Chrome()
     
-    ublock_origin_path = "ublock_origin-1.43.0.xpi"
-    driver.install_addon(ublock_origin_path)
+    # ublock_origin_path = "ublock_origin-1.43.0.xpi"
+    # driver.install_addon(ublock_origin_path)
     
     driver.get(f'https://genius.com/search?q={processed_artist}+{processed_title}')
 

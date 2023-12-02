@@ -185,7 +185,8 @@ def search_cover_artwork_by_image(image: Image.Image):
     image_path = os.path.join(os.getcwd(), "temp", "temp_image.jpg")
     image.save(image_path)
 
-    driver = webdriver.Firefox()
+    # driver = webdriver.Firefox()
+    driver = webdriver.Chrome()
     
     ublock_origin_path = "ublock_origin-1.43.0.xpi"
     driver.install_addon(ublock_origin_path)
