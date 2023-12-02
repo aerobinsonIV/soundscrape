@@ -54,6 +54,9 @@ class MiscTests(TestCase):
 
     # This test doesn't properly isolate the issue
     def test_lyrics_properly_terminated(self):
+        dest_dir = os.path.join(os.getcwd(), "temp")
+        if not os.path.isdir(dest_dir):
+            os.makedirs(dest_dir)
         src = os.path.join(os.getcwd(), "test/yeet.mp3")
         dest = os.path.join(os.getcwd(), "temp/yeet.mp3")
         shutil.copyfile(src, dest)
@@ -66,4 +69,5 @@ class MiscTests(TestCase):
         tag_lyrics = tag['USLT'].text[0][4:]
         self.assertEqual(tag_lyrics, lyrics)
         os.remove(dest)
+        shutil.rmtree(dest_dir)
 
